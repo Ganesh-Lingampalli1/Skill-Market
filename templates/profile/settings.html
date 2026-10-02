@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Settings – SkillMarket{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding-top: 3rem; padding-bottom: 5rem; max-width: 680px;">
+
+  <div style="margin-bottom: 2.5rem;">
+    <div class="badge badge-primary" style="margin-bottom: 0.5rem;">Configuration</div>
+    <h1 style="font-size: 2.25rem; margin-bottom: 0.5rem;">Account & Experience Settings</h1>
+    <p style="font-size: 1.05rem; color: var(--text-secondary);">
+      Manage your profile details, theme appearance, and career matching preferences.
+    </p>
+  </div>
+
+  <form action="{{ url_for('profile.settings') }}" method="POST">
+    
+    <!-- Account Information Section -->
+    <div class="card" style="margin-bottom: 2rem; padding: 2rem;">
+      <h3 style="font-size: 1.25rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+        <i data-lucide="user" style="color: var(--primary);"></i>
+        Account Information
+      </h3>
+
+      <div class="form-group">
+        <label class="form-label" for="username">Username</label>
+        <input type="text" id="username" class="form-control" value="{{ user.username }}" disabled style="opacity: 0.75; background-color: var(--bg-tertiary);">
+        <span style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; display: block;">Username is verified and linked to your activity history.</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email Address</label>
+        <input type="email" id="email" class="form-control" value="{{ user.email }}" disabled style="opacity: 0.75; background-color: var(--bg-tertiary);">
+        <span style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; display: block;">Email is verified via OTP authentication.</span>
+      </div>
+    </div>
+
+    <!-- Appearance Section (Light / Dark Mode) -->
+    <div class="card" style="margin-bottom: 2rem; padding: 2rem;">
+      <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+        <i data-lucide="palette" style="color: var(--accent);"></i>
+        Appearance & Theme
+      </h3>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+        Choose your preferred theme. Your choice is automatically saved to your profile and synced across all your sessions.
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <label style="cursor: pointer;">
+          <input type="radio" name="theme_preference" value="light" {% if user.theme_preference == 'light' %}checked{% endif %} style="display: none;">
+          <div class="theme-choice-box" style="border: 2px solid {% if user.theme_preference == 'light' %}var(--primary){% else %}var(--border-color){% endif %}; border-radius: var(--radius-md); padding: 1.25rem; text-align: center; background-color: #ffffff; color: #0f172a; transition: var(--transition);">
+            <div style="font-size: 1.75rem; margin-bottom: 0.5rem;">☀️</div>
+            <div style="font-weight: 700;">Light Mode</div>
+            <div style="font-size: 0.8rem; color: #64748b;">Crisp, clean daytime theme</div>
+          </div>
+        </label>
+
+        <label style="cursor: pointer;">
+          <input type="radio" name="theme_preference" value="dark" {% if user.theme_preference == 'dark' %}checked{% endif %} style="display: none;">
+          <div class="theme-choice-box" style="border: 2px solid {% if user.theme_preference == 'dark' %}var(--primary){% else %}var(--border-color){% endif %}; border-radius: var(--radius-md); padding: 1.25rem; text-align: center; background-color: #0b0f17; color: #f8fafc; transition: var(--transition);">
+            <div style="font-size: 1.75rem; margin-bottom: 0.5rem;">🌙</div>
+            <div style="font-weight: 700;">Dark Mode</div>
+            <div style="font-size: 0.8rem; color: #94a3b8;">High-contrast slate palette</div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Career Preferences Section -->
+    <div class="card" style="margin-bottom: 2rem; padding: 2rem;">
+      <h3 style="font-size: 1.25rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+        <i data-lucide="compass" style="color: var(--success);"></i>
+        Career Discovery Preferences
+      </h3>
+
+      <div class="form-group">
+        <label class="form-label" for="career_interest">Target Career Interest</label>
+        <select id="career_interest" name="career_interest" class="form-select">
+          <option value="Web Development" {% if user.career_interest == 'Web Development' %}selected{% endif %}>Web Development</option>
+          <option value="Data Science" {% if user.career_interest == 'Data Science' %}selected{% endif %}>Data Science</option>
+          <option value="AI/ML" {% if user.career_interest == 'AI/ML' %}selected{% endif %}>AI & Machine Learning</option>
+          <option value="Cloud & DevOps" {% if user.career_interest == 'Cloud & DevOps' %}selected{% endif %}>Cloud & DevOps</option>
+          <option value="Cybersecurity" {% if user.career_interest == 'Cybersecurity' %}selected{% endif %}>Cybersecurity</option>
+          <option value="UI/UX Design" {% if user.career_interest == 'UI/UX Design' %}selected{% endif %}>UI/UX Design</option>
+          <option value="Mobile Development" {% if user.career_interest == 'Mobile Development' %}selected{% endif %}>Mobile Development</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="experience_level">Current Experience Level</label>
+        <select id="experience_level" name="experience_level" class="form-select">
+          <option value="Beginner" {% if user.experience_level == 'Beginner' %}selected{% endif %}>Beginner (New to coding/fresh graduate)</option>
+          <option value="Intermediate" {% if user.experience_level == 'Intermediate' %}selected{% endif %}>Intermediate (1–3 years experience or solid foundation)</option>
+          <option value="Advanced" {% if user.experience_level == 'Advanced' %}selected{% endif %}>Advanced (3+ years experience or senior practitioner)</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+      <a href="{{ url_for('profile.index') }}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary">
+        <i data-lucide="save" style="width: 16px; height: 16px;"></i> Save Preferences
+      </button>
+    </div>
+
+  </form>
+
+</div>
+
+<script>
+  // Dynamic border highlight on theme change
+  document.querySelectorAll('input[name="theme_preference"]').forEach((radio) => {
+    radio.addEventListener('change', () => {
+      document.querySelectorAll('.theme-choice-box').forEach((box) => {
+        box.style.borderColor = 'var(--border-color)';
+      });
+      const selectedBox = radio.parentElement.querySelector('.theme-choice-box');
+      selectedBox.style.borderColor = 'var(--primary)';
+
+      // Instantly switch theme live
+      if (window.SkillMarketTheme) {
+        SkillMarketTheme.setTheme(radio.value);
+      }
+    });
+  });
+</script>
+{% endblock %}

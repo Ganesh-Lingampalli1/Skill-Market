@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Find Your Next Skill – SkillMarket Recommendations{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 3rem; padding-bottom: 5rem;">
+
+  <!-- Header -->
+  <div style="max-width: 800px; margin-bottom: 2.5rem;">
+    <div class="badge badge-primary" style="margin-bottom: 0.5rem;">AI & Rule-Based Matcher</div>
+    <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Find Your Next Skill</h1>
+    <p style="font-size: 1.1rem; color: var(--text-secondary);">
+      Receive tailored, data-backed skill recommendations that complement what you already know and unlock your highest salary bracket.
+    </p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1.2fr 2fr; gap: 2.5rem; align-items: start;">
+
+    <!-- Left Form: Assessment Questionnaire -->
+    <div class="card" style="padding: 2rem;">
+      <h3 style="font-size: 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+        <i data-lucide="sliders-horizontal" style="color: var(--primary);"></i>
+        Your Career Preferences
+      </h3>
+
+      <form action="{{ url_for('recommendations.index') }}" method="POST">
+        
+        <!-- Career Interest -->
+        <div class="form-group">
+          <label class="form-label" for="career-interest-select">Primary Career Interest</label>
+          <select id="career-interest-select" name="career_interest" class="form-select">
+            <option value="Web Development" {% if selected_interest == 'Web Development' %}selected{% endif %}>Web Development</option>
+            <option value="Data Science" {% if selected_interest == 'Data Science' %}selected{% endif %}>Data Science</option>
+            <option value="AI/ML" {% if selected_interest == 'AI/ML' %}selected{% endif %}>AI / Machine Learning</option>
+            <option value="Cloud & DevOps" {% if selected_interest == 'Cloud & DevOps' %}selected{% endif %}>Cloud & DevOps</option>
+            <option value="Cybersecurity" {% if selected_interest == 'Cybersecurity' %}selected{% endif %}>Cybersecurity</option>
+            <option value="UI/UX Design" {% if selected_interest == 'UI/UX Design' %}selected{% endif %}>UI/UX Design</option>
+            <option value="Mobile Development" {% if selected_interest == 'Mobile Development' %}selected{% endif %}>Mobile Development</option>
+          </select>
+        </div>
+
+        <!-- Experience Level -->
+        <div class="form-group">
+          <label class="form-label">Experience Level</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
+            {% for level in ['Beginner', 'Intermediate', 'Advanced'] %}
+              <label style="cursor: pointer; display: block;">
+                <input type="radio" name="experience_level" value="{{ level }}" {% if selected_experience == level %}checked{% endif %} style="display: none;">
+                <div class="level-box" style="padding: 0.6rem 0.25rem; text-align: center; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600; background-color: {% if selected_experience == level %}var(--primary-light){% else %}var(--bg-secondary){% endif %}; color: {% if selected_experience == level %}var(--primary-text){% else %}var(--text-secondary){% endif %}; border-color: {% if selected_experience == level %}var(--primary){% else %}var(--border-color){% endif %}; transition: var(--transition);">
+                  {{ level }}
+                </div>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Current Skills Multi-select -->
+        <div class="form-group">
+          <label class="form-label">Current Skills (Select all you know)</label>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+            We will prioritize complementary adjacent skills that build upon your existing foundation.
+          </p>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; max-height: 220px; overflow-y: auto; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-secondary);">
+            {% for s in all_common_skills %}
+              {% set is_checked = s.name.lower() in selected_skills or s.name in selected_skills %}
+              <label style="cursor: pointer;">
+                <input type="checkbox" name="current_skills" value="{{ s.name }}" {% if is_checked %}checked{% endif %} style="display: none;">
+                <span class="badge {% if is_checked %}badge-primary{% else %}badge-neutral{% endif %}" style="padding: 0.4rem 0.75rem; font-size: 0.8rem; text-transform: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+                  <i data-lucide="{% if is_checked %}check{% else %}plus{% endif %}" style="width: 12px; height: 12px;"></i>
+                  {{ s.name }}
+                </span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.85rem;">
+          Get My Recommendations <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
+        </button>
+      </form>
+    </div>
+
+    <!-- Right Column: Recommended For You -->
+    <div>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+        <div>
+          <h2 style="font-size: 1.75rem; margin-bottom: 0.25rem;">Recommended For You</h2>
+          <p style="color: var(--text-muted); margin-bottom: 0;">Ranked by compatibility, synergy, and market compensation.</p>
+        </div>
+        <span class="badge badge-primary">{{ recommendations|length }} Matching Skills</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        {% for rec in recommendations %}
+          {% set skill = rec.skill %}
+          <div class="card card-interactive" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem; padding: 1.5rem;">
+            <div style="display: flex; gap: 1.25rem; align-items: center; max-width: 540px;">
+              <div class="skill-icon" style="width: 52px; height: 52px; font-size: 1.35rem; flex-shrink: 0;">
+                <i data-lucide="{{ skill.icon }}"></i>
+              </div>
+
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.25rem;">
+                  <a href="{{ url_for('skills.detail', slug=skill.slug) }}">
+                    <h3 style="font-size: 1.25rem; margin-bottom: 0;">{{ skill.name }}</h3>
+                  </a>
+                  <span class="badge badge-success" style="font-weight: 800; font-size: 0.8rem;">
+                    {{ rec.match_percentage }}% Match
+                  </span>
+                  <span class="badge badge-neutral" style="font-size: 0.75rem;">{{ skill.difficulty }}</span>
+                </div>
+
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                  Est. Salary: <strong>{{ skill.salary_formatted }}</strong> · Demand: <strong style="color: var(--primary);">{{ skill.market_demand }}</strong>
+                </div>
+
+                <!-- Match Reason Explanations -->
+                <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+                  {% for reason in rec.reasons %}
+                    <div style="font-size: 0.825rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.4rem;">
+                      <i data-lucide="check-circle" style="width: 14px; height: 14px; color: var(--success); flex-shrink: 0;"></i>
+                      <span>{{ reason }}</span>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; align-items: center; gap: 0.65rem;">
+              <button type="button" class="bookmark-btn bookmark-toggle-btn {% if skill.id in bookmarked_skill_ids %}active{% endif %}" data-skill-id="{{ skill.id }}" aria-label="Bookmark">
+                <i data-lucide="heart" style="width: 18px; height: 18px; fill: {% if skill.id in bookmarked_skill_ids %}currentColor{% else %}none{% endif %};"></i>
+              </button>
+              <a href="{{ url_for('skills.detail', slug=skill.slug) }}" class="btn btn-outline btn-sm">
+                View Skill
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  // Simple toggle highlight for skill checkboxes and experience radios
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('input[name="current_skills"]').forEach((chk) => {
+      chk.addEventListener('change', () => {
+        const badge = chk.parentElement.querySelector('.badge');
+        const icon = badge.querySelector('i');
+        if (chk.checked) {
+          badge.className = 'badge badge-primary';
+          if (icon) icon.setAttribute('data-lucide', 'check');
+        } else {
+          badge.className = 'badge badge-neutral';
+          if (icon) icon.setAttribute('data-lucide', 'plus');
+        }
+        if (window.lucide) window.lucide.createIcons();
+      });
+    });
+
+    document.querySelectorAll('input[name="experience_level"]').forEach((radio) => {
+      radio.addEventListener('change', () => {
+        document.querySelectorAll('.level-box').forEach((box) => {
+          box.style.backgroundColor = 'var(--bg-secondary)';
+          box.style.borderColor = 'var(--border-color)';
+          box.style.color = 'var(--text-secondary)';
+        });
+        const activeBox = radio.parentElement.querySelector('.level-box');
+        activeBox.style.backgroundColor = 'var(--primary-light)';
+        activeBox.style.borderColor = 'var(--primary)';
+        activeBox.style.color = 'var(--primary-text)';
+      });
+    });
+  });
+</script>
+{% endblock %}

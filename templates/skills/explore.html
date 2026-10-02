@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Explore Skills – SkillMarket{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 3rem; padding-bottom: 5rem;">
+
+  <!-- Header & Search -->
+  <div style="max-width: 800px; margin-bottom: 2.5rem;">
+    <div class="badge badge-primary" style="margin-bottom: 0.5rem;">Discovery Engine</div>
+    <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Explore In-Demand Skills</h1>
+    <p style="font-size: 1.1rem; color: var(--text-secondary);">
+      Find and compare high-yield skills based on employer demand score, compensation brackets, and learning curve.
+    </p>
+  </div>
+
+  <!-- Search & Filter Controls Bar -->
+  <div class="card" style="margin-bottom: 2.5rem; padding: 1.5rem;">
+    <form action="{{ url_for('skills.explore') }}" method="GET" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 1rem; align-items: end;">
+      <!-- Search input -->
+      <div>
+        <label class="form-label" for="search-input">Search Skills</label>
+        <div style="position: relative;">
+          <input type="text" id="search-input" name="q" class="form-control" placeholder="Search skills (e.g. Python, Docker, React)..." value="{{ search_query }}">
+        </div>
+      </div>
+
+      <!-- Category Filter -->
+      <div>
+        <label class="form-label" for="category-select">Category</label>
+        <select id="category-select" name="category" class="form-select">
+          <option value="">All Categories</option>
+          {% for cat in categories %}
+            <option value="{{ cat.slug }}" {% if selected_category and selected_category.slug == cat.slug %}selected{% endif %}>
+              {{ cat.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Difficulty Filter -->
+      <div>
+        <label class="form-label" for="difficulty-select">Difficulty</label>
+        <select id="difficulty-select" name="difficulty" class="form-select">
+          <option value="all">All Difficulties</option>
+          <option value="Beginner" {% if selected_difficulty == 'Beginner' %}selected{% endif %}>Beginner</option>
+          <option value="Intermediate" {% if selected_difficulty == 'Intermediate' %}selected{% endif %}>Intermediate</option>
+          <option value="Advanced" {% if selected_difficulty == 'Advanced' %}selected{% endif %}>Advanced</option>
+        </select>
+      </div>
+
+      <!-- Market Demand Filter -->
+      <div>
+        <label class="form-label" for="demand-select">Demand</label>
+        <select id="demand-select" name="demand" class="form-select">
+          <option value="all">All Demands</option>
+          <option value="Very High" {% if selected_demand == 'Very High' %}selected{% endif %}>Very High</option>
+          <option value="High" {% if selected_demand == 'High' %}selected{% endif %}>High</option>
+        </select>
+      </div>
+
+      <!-- Sorting Filter -->
+      <div>
+        <label class="form-label" for="sort-select">Sort By</label>
+        <select id="sort-select" name="sort" class="form-select">
+          <option value="popular" {% if selected_sort == 'popular' %}selected{% endif %}>Most Popular</option>
+          <option value="highest-demand" {% if selected_sort == 'highest-demand' %}selected{% endif %}>Highest Demand</option>
+          <option value="highest-salary" {% if selected_sort == 'highest-salary' %}selected{% endif %}>Highest Salary</option>
+          <option value="beginner-friendly" {% if selected_sort == 'beginner-friendly' %}selected{% endif %}>Beginner Friendly</option>
+        </select>
+      </div>
+
+      <div style="grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding-top: 0.5rem; border-top: 1px solid var(--border-color);">
+        <div style="font-size: 0.9rem; color: var(--text-muted);">
+          Showing <strong>{{ total_count }}</strong> matching skills
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <a href="{{ url_for('skills.explore') }}" class="btn btn-ghost btn-sm">Reset Filters</a>
+          <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Skills Grid or Empty State -->
+  {% if skills %}
+    <div class="skills-grid">
+      {% for skill in skills %}
+        <div class="card skill-card card-interactive">
+          <div class="skill-card-header">
+            <div class="skill-icon">
+              <i data-lucide="{{ skill.icon }}"></i>
+            </div>
+            <button type="button" class="bookmark-btn bookmark-toggle-btn {% if skill.id in bookmarked_skill_ids %}active{% endif %}" data-skill-id="{{ skill.id }}" aria-label="Bookmark {{ skill.name }}">
+              <i data-lucide="heart" style="width: 18px; height: 18px; fill: {% if skill.id in bookmarked_skill_ids %}currentColor{% else %}none{% endif %};"></i>
+            </button>
+          </div>
+
+          <a href="{{ url_for('skills.detail', slug=skill.slug) }}">
+            <h3 class="skill-name">{{ skill.name }}</h3>
+          </a>
+          <div class="skill-category">{{ skill.category.name if skill.category else 'Technology' }}</div>
+          
+          <div style="margin-bottom: 0.75rem;">
+            <span class="badge {% if skill.market_demand == 'Very High' %}badge-success{% else %}badge-primary{% endif %}">
+              {{ skill.market_demand }} Demand
+            </span>
+          </div>
+
+          <p class="skill-description">{{ skill.description }}</p>
+
+          <div class="skill-meta-row">
+            <div class="meta-item">
+              <span class="meta-label">Est. Salary</span>
+              <span class="meta-val">{{ skill.salary_formatted }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Difficulty</span>
+              <span class="meta-val">{{ skill.difficulty }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Duration</span>
+              <span class="meta-val" style="font-size: 0.85rem;">{{ skill.learning_duration }}</span>
+            </div>
+          </div>
+
+          <div class="skill-card-footer">
+            <a href="{{ url_for('skills.detail', slug=skill.slug) }}" class="btn btn-primary btn-sm" style="flex: 1;">
+              View Details
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">
+        <i data-lucide="search-x"></i>
+      </div>
+      <h3 class="empty-state-title">No skills found.</h3>
+      <p class="empty-state-text">
+        Try searching for another skill, adjusting your filters, or browsing all available categories.
+      </p>
+      <a href="{{ url_for('skills.explore') }}" class="btn btn-primary">
+        Reset All Filters
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

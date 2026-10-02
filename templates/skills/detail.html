@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}{{ skill.name }} – Market Demand, Salary & Roadmaps – SkillMarket{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 3rem; padding-bottom: 5rem;">
+
+  <!-- Breadcrumb -->
+  <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--text-muted); margin-bottom: 2rem;">
+    <a href="{{ url_for('index') }}">Home</a>
+    <span>/</span>
+    <a href="{{ url_for('skills.explore') }}">Skills</a>
+    <span>/</span>
+    <span style="color: var(--text-primary); font-weight: 600;">{{ skill.name }}</span>
+  </div>
+
+  <!-- Skill Hero Overview -->
+  <div class="card" style="padding: 2.5rem; margin-bottom: 2.5rem; background: linear-gradient(180deg, var(--card-bg) 0%, var(--bg-tertiary) 100%);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.5rem;">
+      <div style="display: flex; gap: 1.5rem; align-items: flex-start; max-width: 780px;">
+        <div class="skill-icon" style="width: 64px; height: 64px; font-size: 1.75rem; flex-shrink: 0;">
+          <i data-lucide="{{ skill.icon }}"></i>
+        </div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+            <h1 style="font-size: 2.25rem; margin-bottom: 0;">{{ skill.name }}</h1>
+            <span class="badge {% if skill.market_demand == 'Very High' %}badge-success{% else %}badge-primary{% endif %}">
+              {{ skill.market_demand }} Demand
+            </span>
+            <span class="badge badge-neutral">{{ skill.category.name if skill.category else 'Tech' }}</span>
+          </div>
+          <p style="font-size: 1.1rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem;">
+            {{ skill.description }}
+          </p>
+
+          <!-- Core Attributes Bar -->
+          <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+            <div>
+              <div class="meta-label">Difficulty Level</div>
+              <div class="meta-val" style="font-size: 1.1rem; margin-top: 0.25rem;">{{ skill.difficulty }}</div>
+            </div>
+            <div>
+              <div class="meta-label">Est. Compensation</div>
+              <div class="meta-val" style="font-size: 1.1rem; margin-top: 0.25rem; color: var(--primary);">{{ skill.salary_formatted }}</div>
+            </div>
+            <div>
+              <div class="meta-label">Learning Duration</div>
+              <div class="meta-val" style="font-size: 1.1rem; margin-top: 0.25rem;">{{ skill.learning_duration }}</div>
+            </div>
+            <div>
+              <div class="meta-label">Demand Score</div>
+              <div class="meta-val" style="font-size: 1.1rem; margin-top: 0.25rem; color: var(--success);">{{ skill.demand_score }}/100</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display: flex; flex-direction: column; gap: 0.75rem; min-width: 220px;">
+        {% if resources %}
+        <a href="#resources-section" class="btn btn-primary">
+          <i data-lucide="book-open" style="width: 18px; height: 18px;"></i> Start Learning
+        </a>
+        {% endif %}
+
+        <button type="button" class="btn btn-secondary bookmark-toggle-btn {% if is_bookmarked %}active{% endif %}" data-skill-id="{{ skill.id }}">
+          <i data-lucide="heart" style="width: 18px; height: 18px; fill: {% if is_bookmarked %}currentColor{% else %}none{% endif %};"></i>
+          <span>{% if is_bookmarked %}Saved to Bookmarks{% else %}Add to Bookmarks{% endif %}</span>
+        </button>
+
+        {% if related_careers %}
+        <a href="{{ url_for('roadmap.detail', slug=related_careers[0].slug) }}" class="btn btn-outline">
+          <i data-lucide="milestone" style="width: 18px; height: 18px;"></i> View Roadmap
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2.5rem; align-items: start;">
+    
+    <!-- Left Column: Market Insights & Resources -->
+    <div>
+      <!-- Section 23: Market Insights -->
+      <div class="card" style="margin-bottom: 2.5rem;">
+        <div class="badge badge-primary" style="margin-bottom: 0.5rem;">Market Intelligence</div>
+        <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Market Insights & Compensation</h2>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+          <div style="background: var(--bg-tertiary); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: center;">
+            <div class="meta-label">Employer Demand Score</div>
+            <div style="font-size: 2.25rem; font-weight: 800; color: var(--primary); margin: 0.35rem 0;">{{ skill.demand_score }}<span style="font-size: 1rem; color: var(--text-muted);">/100</span></div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Based on active job requisitions</div>
+          </div>
+
+          <div style="background: var(--bg-tertiary); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: center;">
+            <div class="meta-label">Typical Annual Package</div>
+            <div style="font-size: 2rem; font-weight: 800; color: var(--text-primary); margin: 0.35rem 0;">{{ skill.salary_formatted }}</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Entry to senior practitioner</div>
+          </div>
+
+          <div style="background: var(--bg-tertiary); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: center;">
+            <div class="meta-label">Market Momentum</div>
+            <div style="font-size: 2rem; font-weight: 800; color: var(--success); margin: 0.35rem 0;">{{ skill.market_demand }}</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Consistent hiring velocity</div>
+          </div>
+        </div>
+
+        <!-- Demand Score Visual Progress -->
+        <div style="margin-bottom: 1rem;">
+          <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">
+            <span>Market Demand Score</span>
+            <span style="color: var(--primary);">{{ skill.demand_score }}%</span>
+          </div>
+          <div class="progress-track" style="height: 12px;">
+            <div class="progress-bar-fill" style="width: {{ skill.demand_score }}%;"></div>
+          </div>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0;">
+          * Salary and demand metrics are updated dynamically from market benchmark data. Actual compensation varies by company scale, candidate expertise, and location.
+        </p>
+      </div>
+
+      <!-- Section 26: Learning Resources -->
+      <div class="card" id="resources-section">
+        <div class="badge badge-primary" style="margin-bottom: 0.5rem;">Curated Curriculum</div>
+        <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Verified Learning Resources</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+          Hand-picked documentation, video deep dives, and practical interactive tracks to master {{ skill.name }}.
+        </p>
+
+        {% if resources %}
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            {% for res in resources %}
+              <div style="background-color: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div style="max-width: 520px;">
+                  <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                    <span class="badge badge-neutral" style="font-size: 0.75rem;">{{ res.type }}</span>
+                    <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">{{ res.provider }}</span>
+                    {% if res.is_free %}
+                      <span class="badge badge-success" style="font-size: 0.7rem;">Free</span>
+                    {% endif %}
+                  </div>
+                  <h4 style="font-size: 1.05rem; margin-bottom: 0.25rem;">{{ res.title }}</h4>
+                  <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0;">{{ res.description }}</p>
+                </div>
+
+                <a href="{{ res.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" style="flex-shrink: 0;">
+                  Open Resource <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                </a>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+            Curated resources for {{ skill.name }} are currently being vetted by our engineering team.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Right Column: Career Opportunities & Related Skills -->
+    <div>
+      <!-- Section 24: Career Opportunities -->
+      <div class="card" style="margin-bottom: 2rem;">
+        <h3 style="font-size: 1.2rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <i data-lucide="briefcase" style="color: var(--primary);"></i>
+          Career Opportunities
+        </h3>
+        <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          Roles and titles requiring proficiency in {{ skill.name }}:
+        </p>
+
+        {% if related_careers %}
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            {% for cp in related_careers %}
+              <a href="{{ url_for('roadmap.detail', slug=cp.slug) }}" class="resource-item-link">
+                <div>
+                  <div style="font-weight: 600; font-size: 0.95rem;">{{ cp.name }}</div>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">{{ cp.average_salary }} · {{ cp.estimated_duration }}</div>
+                </div>
+                <i data-lucide="arrow-right" style="width: 16px; height: 16px; color: var(--primary);"></i>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem;">
+            <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); font-weight: 600;">{{ skill.name }} Specialist</li>
+            <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); font-weight: 600;">Senior Software Engineer</li>
+            <li style="padding: 0.5rem 0; font-weight: 600;">Technical Consultant</li>
+          </ul>
+        {% endif %}
+      </div>
+
+      <!-- Section 25: Related Skills -->
+      <div class="card">
+        <h3 style="font-size: 1.2rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <i data-lucide="sparkles" style="color: var(--accent);"></i>
+          Related Skills
+        </h3>
+        <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          Skills frequently paired with {{ skill.name }} in job descriptions:
+        </p>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+          {% for rskill in related_skills %}
+            <a href="{{ url_for('skills.detail', slug=rskill.slug) }}" class="badge badge-neutral" style="padding: 0.5rem 0.85rem; font-size: 0.85rem; text-transform: none; text-decoration: none;">
+              {{ rskill.name }}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

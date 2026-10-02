@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}403 Forbidden – SkillMarket{% endblock %}
+
+{% block content %}
+<div class="container text-center" style="padding: 6rem 0;">
+  <div style="font-size: 5rem; font-weight: 800; color: var(--warning); line-height: 1; margin-bottom: 1rem;">403</div>
+  <h1 style="font-size: 2rem; margin-bottom: 0.75rem;">Access Denied</h1>
+  <p style="color: var(--text-muted); max-width: 460px; margin: 0 auto 2rem;">
+    You do not have permission to access this administrative resource.
+  </p>
+  <a href="{{ url_for('index') }}" class="btn btn-primary">Return Home</a>
+</div>
+{% endblock %}

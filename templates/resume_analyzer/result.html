@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block title %}Resume Analysis Results – SkillMarket{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2.5rem; padding-bottom: 5rem;">
+
+  <!-- Navigation & Action Bar -->
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+    <a href="{{ url_for('resume_analyzer.index') }}" class="btn btn-ghost btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem; padding-left: 0;">
+      <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Upload Different Resume
+    </a>
+    <div style="display: flex; gap: 0.75rem;">
+      <button type="button" class="btn btn-primary btn-sm ask-ai-resume-btn" 
+              data-skills="{{ detected_skills|map(attribute='name')|join(', ') }}"
+              data-role="{{ target_path.name if target_path else 'Tech Careers' }}"
+              style="display: inline-flex; align-items: center; gap: 0.4rem;">
+        <i data-lucide="bot" style="width: 15px; height: 15px;"></i> Ask AI Resume Coach
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary Card -->
+  <div class="card" style="padding: 2rem; margin-bottom: 2rem; border-radius: var(--radius-lg);">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem;">
+          <span class="badge badge-primary" style="font-size: 0.78rem;">PDF Extraction Complete</span>
+          <span style="font-size: 0.85rem; color: var(--text-muted);">
+            <i data-lucide="file-text" style="width: 14px; height: 14px; vertical-align: -2px;"></i> {{ resume_data.filename }}
+          </span>
+        </div>
+        <h1 style="font-size: 2rem; font-weight: 800; margin: 0 0 0.4rem 0; color: var(--text-primary);">
+          Identified {{ detected_skills|length }} Technical Skills
+        </h1>
+        <p style="font-size: 0.95rem; color: var(--text-secondary); margin: 0;">
+          Extracted and normalized from approximately {{ resume_data.word_count }} words using our career skill dictionary.
+        </p>
+      </div>
+
+      <!-- Quick Stats -->
+      <div style="display: flex; gap: 1.5rem; background: var(--bg-secondary); padding: 1rem 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+        <div>
+          <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Skills Detected</div>
+          <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">{{ detected_skills|length }}</div>
+        </div>
+        <div style="border-left: 1px solid var(--border-color); padding-left: 1.5rem;">
+          <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Categories</div>
+          <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary);">{{ categorized_skills|length }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Role Fit Comparison Card (if target path selected) -->
+  {% if comparison %}
+  <div class="card" style="padding: 2rem; margin-bottom: 2rem; border-radius: var(--radius-lg); border-left: 4px solid var(--primary); background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-secondary) 100%);">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 1.25rem;">
+      <div>
+        <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--primary); letter-spacing: 0.05em; margin-bottom: 0.25rem;">Target Role Fit</div>
+        <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: var(--text-primary);">{{ target_path.name }}</h2>
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+          Average Compensation: <strong>{{ target_path.average_salary }}</strong> &bull; {{ target_path.difficulty }}
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="text-align: right;">
+          <div style="font-size: 2.25rem; font-weight: 900; color: {% if comparison.match_score >= 70 %}var(--success, #10b981){% elif comparison.match_score >= 40 %}var(--primary){% else %}#f59e0b{% endif %}; line-height: 1;">
+            {{ comparison.match_score }}%
+          </div>
+          <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Match Score</div>
+        </div>
+        <a href="{{ url_for('skill_gap.result', slug=target_path.slug) }}" class="btn btn-outline btn-sm" style="display: flex; align-items: center; gap: 0.4rem; white-space: nowrap;">
+          <i data-lucide="target" style="width: 14px; height: 14px;"></i> View Full Gap Analysis
+        </a>
+      </div>
+    </div>
+
+    <!-- Match vs Missing Pills -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+      <div style="background: var(--card-bg); padding: 1rem 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+        <div style="font-size: 0.82rem; font-weight: 700; color: var(--success, #10b981); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+          <i data-lucide="check" style="width: 15px; height: 15px;"></i> Matched in Resume ({{ comparison.matched_skills|length }})
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+          {% for ms in comparison.matched_skills %}
+          <span style="font-size: 0.78rem; font-weight: 600; padding: 0.25rem 0.6rem; border-radius: 6px; background: rgba(16, 185, 129, 0.12); color: var(--success, #10b981); border: 1px solid rgba(16, 185, 129, 0.25);">
+            {{ ms.name }}
+          </span>
+          {% else %}
+          <span style="font-size: 0.8rem; color: var(--text-muted);">None matched yet</span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div style="background: var(--card-bg); padding: 1rem 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+        <div style="font-size: 0.82rem; font-weight: 700; color: #f59e0b; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+          <i data-lucide="alert-circle" style="width: 15px; height: 15px;"></i> Missing for This Role ({{ comparison.missing_skills|length }})
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+          {% for ms in comparison.missing_skills %}
+          <span style="font-size: 0.78rem; font-weight: 600; padding: 0.25rem 0.6rem; border-radius: 6px; background: rgba(245, 158, 11, 0.12); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.25);">
+            {{ ms.name }}
+          </span>
+          {% else %}
+          <span style="font-size: 0.8rem; color: var(--success, #10b981);">All required skills present!</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- User Review & Confirmation Form -->
+  <form action="{{ url_for('resume_analyzer.save_skills') }}" method="POST">
+    {% if target_path %}
+    <input type="hidden" name="target_path_id" value="{{ target_path.id }}">
+    {% endif %}
+
+    <div class="card" style="padding: 2rem;">
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.25rem;">
+        <div>
+          <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0 0 0.25rem 0; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="check-square" style="color: var(--primary);"></i>
+            Review & Confirm Skills to Sync
+          </h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+            Uncheck any skills that may be false positives or that you do not wish to add to your profile.
+          </p>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem;">
+          <button type="button" id="select-all-btn" class="btn btn-ghost btn-sm" style="font-size: 0.8rem;">Select All</button>
+          <button type="button" id="deselect-all-btn" class="btn btn-ghost btn-sm" style="font-size: 0.8rem;">Deselect All</button>
+        </div>
+      </div>
+
+      {% if categorized_skills %}
+        <div style="display: flex; flex-direction: column; gap: 1.75rem;">
+          {% for category_name, skills in categorized_skills.items() %}
+          <div>
+            <div style="font-size: 0.88rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+              <i data-lucide="folder" style="width: 15px; height: 15px; color: var(--primary);"></i>
+              {{ category_name }} ({{ skills|length }})
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.75rem;">
+              {% for skill in skills %}
+              {% set already_saved = skill.id in user_skill_ids %}
+              <label class="skill-review-item" style="cursor: pointer; margin: 0; display: block;">
+                <input type="checkbox" name="confirmed_skills" value="{{ skill.id }}" checked class="resume-skill-check" style="display: none;">
+                <div class="skill-review-card" style="padding: 0.85rem 1rem; border: 1.5px solid var(--primary); border-radius: var(--radius-md); background: var(--primary-light, rgba(2, 132, 199, 0.06)); display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; transition: all 0.15s ease;">
+                  <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <span class="check-icon" style="color: var(--primary); display: flex;">
+                      <i data-lucide="check-square" style="width: 17px; height: 17px;"></i>
+                    </span>
+                    <div>
+                      <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-primary);">{{ skill.name }}</div>
+                      <div style="font-size: 0.75rem; color: var(--text-muted);">{{ skill.difficulty }}</div>
+                    </div>
+                  </div>
+
+                  {% if already_saved %}
+                  <span style="font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 4px; background: var(--bg-secondary); color: var(--text-muted);">
+                    In Profile
+                  </span>
+                  {% else %}
+                  <span style="font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
+                    + New
+                  </span>
+                  {% endif %}
+                </div>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Submit Review -->
+        <div style="margin-top: 2.25rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div style="font-size: 0.88rem; color: var(--text-secondary);">
+            <span id="selected-confirm-count">{{ detected_skills|length }}</span> skills will be added to your profile under source: <strong>resume</strong>.
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.75rem; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="user-check" style="width: 17px; height: 17px;"></i>
+            Confirm & Save Skills to Profile
+          </button>
+        </div>
+
+      {% else %}
+        <div style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+          <i data-lucide="alert-triangle" style="width: 40px; height: 40px; margin-bottom: 0.75rem; opacity: 0.6;"></i>
+          <h4 style="font-weight: 700; margin-bottom: 0.25rem; color: var(--text-primary);">No Skills Detected</h4>
+          <p style="font-size: 0.88rem; max-width: 380px; margin: 0 auto 1.5rem auto;">
+            We couldn't match any skills in our dictionary from this PDF. Try uploading a text-based resume or select skills manually.
+          </p>
+          <a href="{{ url_for('skill_gap.index') }}" class="btn btn-primary btn-sm">Go to Skill Gap Analyzer</a>
+        </div>
+      {% endif %}
+
+    </div>
+  </form>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const checkboxes = document.querySelectorAll('.resume-skill-check');
+  const countSpan = document.getElementById('selected-confirm-count');
+  const selectAllBtn = document.getElementById('select-all-btn');
+  const deselectAllBtn = document.getElementById('deselect-all-btn');
+
+  function updateCard(cb) {
+    const card = cb.closest('label').querySelector('.skill-review-card');
+    const icon = card.querySelector('.check-icon');
+    if (cb.checked) {
+      card.style.borderColor = 'var(--primary)';
+      card.style.backgroundColor = 'var(--primary-light, rgba(2, 132, 199, 0.06))';
+      icon.innerHTML = '<i data-lucide="check-square" style="width: 17px; height: 17px;"></i>';
+    } else {
+      card.style.borderColor = 'var(--border-color)';
+      card.style.backgroundColor = 'var(--card-bg)';
+      icon.innerHTML = '<i data-lucide="square" style="width: 17px; height: 17px;"></i>';
+    }
+  }
+
+  function updateCount() {
+    const checked = document.querySelectorAll('.resume-skill-check:checked').length;
+    if (countSpan) countSpan.textContent = checked;
+    if (window.lucide) lucide.createIcons();
+  }
+
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', function() {
+      updateCard(this);
+      updateCount();
+    });
+  });
+
+  if (selectAllBtn) {
+    selectAllBtn.addEventListener('click', function() {
+      checkboxes.forEach(cb => {
+        cb.checked = true;
+        updateCard(cb);
+      });
+      updateCount();
+    });
+  }
+
+  if (deselectAllBtn) {
+    deselectAllBtn.addEventListener('click', function() {
+      checkboxes.forEach(cb => {
+        cb.checked = false;
+        updateCard(cb);
+      });
+      updateCount();
+    });
+  }
+
+  // AI Resume Coach click handler
+  const askAiBtn = document.querySelector('.ask-ai-resume-btn');
+  if (askAiBtn) {
+    askAiBtn.addEventListener('click', function() {
+      const skills = this.getAttribute('data-skills');
+      const role = this.getAttribute('data-role');
+      const prompt = `I just analyzed my resume with SkillMarket. My detected technical skills are: ${skills}. I am targeting roles like ${role}. How can I enhance my resume bullet points with quantifiable impact, and what critical missing skills should I highlight or learn next?`;
+
+      if (window.SkillMarketAI && typeof window.SkillMarketAI.openWithPrompt === 'function') {
+        window.SkillMarketAI.openWithPrompt(prompt);
+      } else {
+        window.dispatchEvent(new CustomEvent('skillmarket:open-ai', { detail: { prompt: prompt } }));
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

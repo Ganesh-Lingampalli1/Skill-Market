@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}{{ career_path.name }} Roadmap – SkillMarket{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 3rem; padding-bottom: 5rem;">
+
+  <!-- Breadcrumb -->
+  <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--text-muted); margin-bottom: 2rem;">
+    <a href="{{ url_for('index') }}">Home</a>
+    <span>/</span>
+    <a href="{{ url_for('roadmap.list_roadmaps') }}">Roadmaps</a>
+    <span>/</span>
+    <span style="color: var(--text-primary); font-weight: 600;">{{ career_path.name }}</span>
+  </div>
+
+  <!-- Roadmap Header Card -->
+  <div class="card" style="padding: 2.5rem; margin-bottom: 3rem; background: linear-gradient(180deg, var(--card-bg) 0%, var(--bg-tertiary) 100%);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2rem;">
+      <div style="max-width: 760px;">
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
+          <div class="skill-icon" style="width: 48px; height: 48px; font-size: 1.35rem;">
+            <i data-lucide="{{ career_path.icon }}"></i>
+          </div>
+          <h1 style="font-size: 2.25rem; margin-bottom: 0;">{{ career_path.name }} Roadmap</h1>
+        </div>
+        <p style="font-size: 1.1rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem;">
+          {{ career_path.description }}
+        </p>
+
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+          <span class="badge badge-primary"><i data-lucide="trending-up" style="width: 14px; height: 14px;"></i> {{ career_path.demand_level }}</span>
+          <span class="badge badge-neutral"><i data-lucide="bar-chart-2" style="width: 14px; height: 14px;"></i> {{ career_path.difficulty }}</span>
+          <span class="badge badge-neutral"><i data-lucide="clock" style="width: 14px; height: 14px;"></i> {{ career_path.estimated_duration }}</span>
+          <span class="badge badge-neutral"><i data-lucide="indian-rupee" style="width: 14px; height: 14px;"></i> {{ career_path.average_salary }}</span>
+        </div>
+      </div>
+
+      <!-- Roadmap Progress Card Widget -->
+      <div style="background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; min-width: 260px; box-shadow: var(--shadow-sm);">
+        <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.5rem;">
+          Roadmap Progress
+        </div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.75rem;">
+          <span class="roadmap-progress-pct" style="font-size: 2rem; font-weight: 800; color: var(--primary);">{{ progress_percentage }}%</span>
+          <span class="roadmap-completed-count" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+            {{ completed_count }} of {{ total_steps }} steps
+          </span>
+        </div>
+
+        <div class="progress-track" style="height: 10px;">
+          <div class="progress-bar-fill roadmap-progress-fill" style="width: {{ progress_percentage }}%;"></div>
+        </div>
+
+        {% if not current_user %}
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem;">
+            <a href="{{ url_for('auth.login') }}" style="font-weight: 600;">Log in</a> to permanently track your progress across devices.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Stepper / Step-by-Step Curriculum -->
+  <div style="max-width: 860px; margin: 0 auto;">
+    <div style="margin-bottom: 2rem; text-align: center;">
+      <h2 style="font-size: 1.85rem; margin-bottom: 0.5rem;">Interactive Learning Pathway</h2>
+      <p style="color: var(--text-secondary);">Click any step to reveal detailed learning objectives and curated resources. Mark steps complete as you progress.</p>
+    </div>
+
+    <div class="roadmap-stepper">
+      {% for step in steps %}
+        {% set is_step_done = step.id in completed_step_ids %}
+        <div class="roadmap-step {% if is_step_done %}completed{% endif %}" data-step-id="{{ step.id }}">
+          <!-- Node with step sequence number -->
+          <div class="step-node">
+            {% if is_step_done %}
+              <i data-lucide="check" style="width: 22px; height: 22px;"></i>
+            {% else %}
+              {{ "%02d" % step.sequence_order }}
+            {% endif %}
+          </div>
+
+          <!-- Step Content Container -->
+          <div class="step-content">
+            <div class="step-header">
+              <div>
+                <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); margin-bottom: 0.25rem;">
+                  Step {{ "%02d" % step.sequence_order }}
+                </div>
+                <h3 class="step-title" style="margin-bottom: 0;">{{ step.step_title }}</h3>
+              </div>
+
+              <!-- Complete Toggle Button -->
+              {% if current_user %}
+                <button type="button" class="btn btn-sm {% if is_step_done %}btn-success{% else %}btn-outline{% endif %} step-complete-btn" data-path-id="{{ career_path.id }}" data-step-id="{{ step.id }}">
+                  {% if is_step_done %}
+                    <i data-lucide="check"></i> Completed
+                  {% else %}
+                    <i data-lucide="circle"></i> Mark as Complete
+                  {% endif %}
+                </button>
+              {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-outline">
+                  <i data-lucide="log-in" style="width: 14px; height: 14px;"></i> Log in to Track
+                </a>
+              {% endif %}
+            </div>
+
+            <p class="step-description">{{ step.step_description }}</p>
+
+            <!-- Learning Resources Section for Step -->
+            <div class="step-resources-box">
+              <div class="step-resources-title">
+                <i data-lucide="book-open" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 0.25rem;"></i>
+                Recommended Learning Resources
+              </div>
+
+              {% if step.step_resources %}
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                  {% for sr in step.step_resources %}
+                    {% set res = sr.resource %}
+                    <div class="resource-item-link" style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem;">
+                      <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="font-size: 1.1rem;">
+                          {% if res.type == 'Documentation' %}📘
+                          {% elif res.type == 'Video Course' %}🎥
+                          {% elif res.type == 'Practice' %}💻
+                          {% else %}📚{% endif %}
+                        </span>
+                        <div>
+                          <div style="font-weight: 600; font-size: 0.95rem;">{{ res.title }}</div>
+                          <div style="font-size: 0.8rem; color: var(--text-muted);">{{ res.type }} · {{ res.provider }} {% if res.is_free %}· <span style="color: var(--success);">Free</span>{% endif %}</div>
+                        </div>
+                      </div>
+
+                      <a href="{{ res.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary">
+                        Open Resource <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                      </a>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% elif step.skill and step.skill.resources %}
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                  {% for res in step.skill.resources %}
+                    <div class="resource-item-link" style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem;">
+                      <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="font-size: 1.1rem;">
+                          {% if res.type == 'Documentation' %}📘
+                          {% elif res.type == 'Video Course' %}🎥
+                          {% elif res.type == 'Practice' %}💻
+                          {% else %}📚{% endif %}
+                        </span>
+                        <div>
+                          <div style="font-weight: 600; font-size: 0.95rem;">{{ res.title }}</div>
+                          <div style="font-size: 0.8rem; color: var(--text-muted);">{{ res.type }} · {{ res.provider }}</div>
+                        </div>
+                      </div>
+
+                      <a href="{{ res.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary">
+                        Open Resource <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                      </a>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div style="font-size: 0.85rem; color: var(--text-muted);">
+                  Official tutorials and code repositories are linked in the skill details.
+                  {% if step.skill %}
+                    <a href="{{ url_for('skills.detail', slug=step.skill.slug) }}" style="font-weight: 600; margin-left: 0.35rem;">View {{ step.skill.name }} Hub →</a>
+                  {% endif %}
+                </div>
+              {% endif %}
+            </div>
+
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

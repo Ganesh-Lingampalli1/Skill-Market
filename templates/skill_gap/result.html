@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+
+{% block title %}Skill Gap: {{ career_path.name }} – SkillMarket{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2.5rem; padding-bottom: 5rem;">
+
+  <!-- Breadcrumb & Top Bar -->
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+    <a href="{{ url_for('skill_gap.index') }}" class="btn btn-ghost btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem; padding-left: 0;">
+      <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Analyze Another Role
+    </a>
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="{{ url_for('roadmap.detail', slug=career_path.slug) }}" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem;">
+        <i data-lucide="map" style="width: 15px; height: 15px;"></i> View Full Roadmap
+      </a>
+      <button type="button" class="btn btn-primary btn-sm ask-ai-gap-btn" 
+              data-role="{{ career_path.name }}"
+              data-score="{{ analysis.readiness_score }}"
+              data-missing="{{ analysis.missing_skills|map(attribute='name')|join(', ') }}"
+              style="display: inline-flex; align-items: center; gap: 0.4rem;">
+        <i data-lucide="bot" style="width: 15px; height: 15px;"></i> Ask AI Assistant
+      </button>
+    </div>
+  </div>
+
+  <!-- Hero Analysis Card -->
+  <div class="card" style="padding: 2.25rem; margin-bottom: 2.5rem; background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-secondary) 100%); border: 1px solid var(--border-color); border-radius: var(--radius-lg); position: relative; overflow: hidden;">
+    
+    <div style="display: grid; grid-template-columns: 1fr auto; gap: 2rem; align-items: center;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+          <span class="badge badge-primary" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">Career Target</span>
+          <span class="badge badge-secondary" style="font-size: 0.8rem;">{{ career_path.difficulty }}</span>
+          <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: var(--success, #10b981); font-weight: 600; font-size: 0.8rem;">
+            Avg. {{ career_path.average_salary }}
+          </span>
+        </div>
+        <h1 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text-primary); letter-spacing: -0.02em;">
+          {{ career_path.name }}
+        </h1>
+        <p style="font-size: 1rem; color: var(--text-secondary); max-width: 650px; line-height: 1.6; margin-bottom: 1.5rem;">
+          {{ analysis.readiness_desc }}
+        </p>
+
+        <!-- KPI Metrics Row -->
+        <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+          <div>
+            <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: 0.2rem;">Matched Skills</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: var(--success, #10b981);">
+              {{ analysis.matched_count }} <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted);">/ {{ analysis.total_required }}</span>
+            </div>
+          </div>
+          <div style="border-left: 1px solid var(--border-color); padding-left: 2rem;">
+            <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: 0.2rem;">Skill Gaps</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: {% if analysis.missing_count > 0 %}#f59e0b{% else %}var(--success, #10b981){% endif %};">
+              {{ analysis.missing_count }} <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted);">to acquire</span>
+            </div>
+          </div>
+          <div style="border-left: 1px solid var(--border-color); padding-left: 2rem;">
+            <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: 0.2rem;">Est. Bridge Time</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">
+              ~{{ analysis.estimated_weeks }} <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted);">weeks</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Radial Readiness Score Gauge -->
+      <div style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 180px;">
+        <div style="position: relative; width: 140px; height: 140px;">
+          <svg viewBox="0 0 36 36" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  fill="none" stroke="var(--border-color)" stroke-width="3" />
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  fill="none" stroke="{% if analysis.readiness_score >= 80 %}#10b981{% elif analysis.readiness_score >= 50 %}#0284c7{% else %}#f59e0b{% endif %}"
+                  stroke-width="3.5"
+                  stroke-dasharray="{{ analysis.readiness_score }}, 100"
+                  stroke-linecap="round"
+                  style="transition: stroke-dasharray 1s ease-in-out;" />
+          </svg>
+          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+            <div style="font-size: 2rem; font-weight: 900; color: var(--text-primary); line-height: 1;">{{ analysis.readiness_score }}%</div>
+            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700; margin-top: 4px;">Readiness</div>
+          </div>
+        </div>
+        <div style="margin-top: 0.75rem; font-weight: 700; font-size: 0.95rem; color: {% if analysis.readiness_score >= 80 %}#10b981{% elif analysis.readiness_score >= 50 %}#0284c7{% else %}#f59e0b{% endif %};">
+          {{ analysis.readiness_level }}
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Two Column Skills Breakdown: Matched vs Missing -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 3rem; align-items: start;">
+
+    <!-- Left: Matched Competencies -->
+    <div class="card" style="padding: 1.75rem;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+        <h3 style="font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; margin: 0; color: var(--text-primary);">
+          <i data-lucide="check-circle" style="color: var(--success, #10b981); width: 20px; height: 20px;"></i>
+          Matched Skills ({{ analysis.matched_count }})
+        </h3>
+        <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: var(--success, #10b981); font-weight: 700; font-size: 0.75rem;">
+          Verified
+        </span>
+      </div>
+
+      {% if analysis.matched_skills %}
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        {% for skill in analysis.matched_skills %}
+        <div style="padding: 0.85rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981); display: flex; align-items: center; justify-content: center;">
+              <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+            </div>
+            <div>
+              <a href="{{ url_for('skills.detail', slug=skill.slug) }}" style="font-weight: 700; color: var(--text-primary); text-decoration: none;" class="hover-underline">
+                {{ skill.name }}
+              </a>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">
+                {{ skill.category.name if skill.category else 'Core Tech' }} &bull; {{ skill.difficulty }}
+              </div>
+            </div>
+          </div>
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--primary);">{{ skill.salary_formatted }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted);">
+        <i data-lucide="alert-circle" style="width: 36px; height: 36px; margin-bottom: 0.75rem; opacity: 0.5;"></i>
+        <div style="font-weight: 600; margin-bottom: 0.25rem;">No direct skill matches yet</div>
+        <p style="font-size: 0.85rem; max-width: 320px; margin: 0 auto;">
+          Follow the prioritized learning sequence on the right to start building your foundation.
+        </p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Right: Missing Skill Gaps -->
+    <div class="card" style="padding: 1.75rem;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+        <h3 style="font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; margin: 0; color: var(--text-primary);">
+          <i data-lucide="alert-triangle" style="color: #f59e0b; width: 20px; height: 20px;"></i>
+          Missing Skills to Acquire ({{ analysis.missing_count }})
+        </h3>
+        <span class="badge" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; font-weight: 700; font-size: 0.75rem;">
+          Priority
+        </span>
+      </div>
+
+      {% if analysis.missing_skills %}
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        {% for skill in analysis.missing_skills %}
+        <div style="padding: 0.85rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--card-bg); display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(245, 158, 11, 0.15); color: #f59e0b; display: flex; align-items: center; justify-content: center;">
+              <i data-lucide="arrow-up-right" style="width: 16px; height: 16px;"></i>
+            </div>
+            <div>
+              <a href="{{ url_for('skills.detail', slug=skill.slug) }}" style="font-weight: 700; color: var(--text-primary); text-decoration: none;" class="hover-underline">
+                {{ skill.name }}
+              </a>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">
+                Demand Score: {{ skill.demand_score }}% &bull; {{ skill.learning_duration }}
+              </div>
+            </div>
+          </div>
+          
+          <form action="{{ url_for('skill_gap.add_skill', skill_id=skill.id) }}" method="POST" style="margin: 0;">
+            <button type="submit" class="btn btn-ghost btn-sm" title="Mark this skill as already learned" style="font-size: 0.78rem; padding: 0.35rem 0.65rem; color: var(--text-secondary); border: 1px solid var(--border-color);">
+              <i data-lucide="check" style="width: 13px; height: 13px; margin-right: 3px;"></i> I Know This
+            </button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="text-align: center; padding: 2.5rem 1rem; color: var(--success, #10b981);">
+        <i data-lucide="award" style="width: 42px; height: 42px; margin-bottom: 0.75rem;"></i>
+        <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.25rem;">Congratulations! Zero Skill Gaps!</div>
+        <p style="font-size: 0.88rem; color: var(--text-secondary); max-width: 340px; margin: 0 auto;">
+          You meet 100% of the core competencies for this role. You are in an ideal position to apply for interviews.
+        </p>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Priority Learning Order Stepper -->
+  {% if analysis.recommended_learning_order %}
+  <div class="card" style="padding: 2rem; margin-bottom: 2.5rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0 0 0.25rem 0; display: flex; align-items: center; gap: 0.5rem;">
+          <i data-lucide="list-ordered" style="color: var(--primary);"></i>
+          Step-by-Step Learning Sequence
+        </h3>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0;">
+          Structured according to professional role dependencies. Master each milestone sequentially.
+        </p>
+      </div>
+
+      {% if analysis.next_priority_skill %}
+      <div style="background: var(--primary-light, rgba(2, 132, 199, 0.1)); border: 1px solid var(--primary); padding: 0.5rem 1rem; border-radius: var(--radius-md); display: flex; align-items: center; gap: 0.6rem;">
+        <i data-lucide="zap" style="color: var(--primary); width: 18px; height: 18px;"></i>
+        <div>
+          <div style="font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: var(--primary);">Immediate Next Priority</div>
+          <div style="font-size: 0.9rem; font-weight: 800; color: var(--text-primary);">{{ analysis.next_priority_skill.name }}</div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Sequence Stepper -->
+    <div style="display: flex; flex-direction: column; gap: 1.25rem; position: relative;">
+      {% for skill in analysis.recommended_learning_order %}
+      <div style="display: flex; gap: 1.25rem; align-items: flex-start;">
+        <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.95rem; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);">
+          {{ loop.index }}
+        </div>
+        <div style="flex: 1; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem 1.25rem; background: var(--card-bg);">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="font-weight: 800; font-size: 1rem; color: var(--text-primary);">
+              {{ skill.name }}
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <span class="badge badge-secondary" style="font-size: 0.75rem;">{{ skill.difficulty }}</span>
+              <span style="font-size: 0.8rem; color: var(--text-muted);"><i data-lucide="clock" style="width: 12px; height: 12px; vertical-align: -1px;"></i> {{ skill.learning_duration }}</span>
+            </div>
+          </div>
+          <p style="font-size: 0.86rem; color: var(--text-secondary); margin: 0 0 0.75rem 0; line-height: 1.5;">
+            {{ skill.description }}
+          </p>
+
+          <!-- Resources row for this skill -->
+          {% if skill.id in analysis.resources_by_skill and analysis.resources_by_skill[skill.id] %}
+          <div style="border-top: 1px dashed var(--border-color); padding-top: 0.6rem; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Top Resources:</span>
+            {% for res in analysis.resources_by_skill[skill.id] %}
+            <a href="{{ res.url }}" target="_blank" rel="noopener noreferrer" style="font-size: 0.8rem; color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 600;" class="hover-underline">
+              <i data-lucide="external-link" style="width: 12px; height: 12px;"></i> {{ res.title }}
+              {% if res.is_free %}<span style="font-size: 0.68rem; background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981); padding: 0.1rem 0.35rem; border-radius: 4px;">Free</span>{% endif %}
+            </a>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Curated Learning Resources Section -->
+  {% if analysis.resources_by_skill %}
+  <div style="margin-bottom: 3rem;">
+    <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+      <i data-lucide="book-open" style="color: var(--primary);"></i>
+      Curated Resources for Missing Skills
+    </h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem;">
+      {% for skill_id, res_list in analysis.resources_by_skill.items() %}
+        {% for res in res_list %}
+        <div class="card" style="padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; border-radius: var(--radius-md);">
+          <div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+              <span class="badge badge-primary" style="font-size: 0.72rem;">{{ res.type }}</span>
+              {% if res.is_free %}
+              <span class="badge" style="background: rgba(16, 185, 129, 0.12); color: var(--success, #10b981); font-size: 0.72rem; font-weight: 600;">Free</span>
+              {% endif %}
+            </div>
+            <h4 style="font-size: 0.98rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--text-primary);">{{ res.title }}</h4>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">Provider: {{ res.provider }}</div>
+            {% if res.description %}
+            <p style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.4; margin-bottom: 1rem;">
+              {{ res.description[:110] }}{% if res.description|length > 110 %}...{% endif %}
+            </p>
+            {% endif %}
+          </div>
+          <a href="{{ res.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="width: 100%; justify-content: center; display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem;">
+            <i data-lucide="external-link" style="width: 13px; height: 13px;"></i> Start Learning
+          </a>
+        </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Quick Switcher to Other Roles -->
+  {% if other_paths %}
+  <div class="card" style="padding: 1.75rem;">
+    <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem;">Analyze Readiness for Alternate Roles</h4>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+      {% for op in other_paths %}
+      <a href="{{ url_for('skill_gap.result', slug=op.slug) }}" style="text-decoration: none; padding: 0.85rem 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-secondary); display: flex; align-items: center; justify-content: space-between; transition: var(--transition);" class="hover-card">
+        <div>
+          <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-primary);">{{ op.name }}</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">{{ op.average_salary }}</div>
+        </div>
+        <i data-lucide="chevron-right" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const askAiBtn = document.querySelector('.ask-ai-gap-btn');
+  if (askAiBtn) {
+    askAiBtn.addEventListener('click', function() {
+      const role = this.getAttribute('data-role');
+      const score = this.getAttribute('data-score');
+      const missing = this.getAttribute('data-missing');
+      const prompt = `I just analyzed my Skill Gap for ${role}. My readiness score is ${score}%, and my key missing skills are: ${missing || 'None'}. Can you create a high-impact 6-week study schedule and suggest a portfolio project that proves these missing skills to recruiters?`;
+
+      if (window.SkillMarketAI && typeof window.SkillMarketAI.openWithPrompt === 'function') {
+        window.SkillMarketAI.openWithPrompt(prompt);
+      } else {
+        // Fallback: Dispatch custom event for floating assistant
+        window.dispatchEvent(new CustomEvent('skillmarket:open-ai', { detail: { prompt: prompt } }));
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

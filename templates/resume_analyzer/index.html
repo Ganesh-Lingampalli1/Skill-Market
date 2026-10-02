@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Resume Skill Analyzer – SkillMarket{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2.5rem; padding-bottom: 5rem;">
+
+  <!-- Header -->
+  <div style="max-width: 820px; margin-bottom: 2.5rem;">
+    <div class="badge badge-primary" style="margin-bottom: 0.75rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+      <i data-lucide="file-check" style="width: 14px; height: 14px;"></i> In-Memory Resume Intelligence
+    </div>
+    <h1 style="font-size: 2.25rem; font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -0.02em;">Resume Skill Analyzer</h1>
+    <p style="font-size: 1.05rem; color: var(--text-secondary); line-height: 1.6;">
+      Upload your PDF resume to automatically discover your technical skills, map synonyms, benchmark against target job roles, and selectively sync them to your SkillMarket profile.
+    </p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 2.5rem; align-items: start;">
+
+    <!-- Upload Card -->
+    <div class="card" style="padding: 2.25rem;">
+      <form action="{{ url_for('resume_analyzer.upload') }}" method="POST" enctype="multipart/form-data" id="resume-upload-form">
+        
+        <!-- Drag & Drop Zone -->
+        <div id="drop-zone" style="border: 2px dashed var(--border-color); border-radius: var(--radius-lg); padding: 3rem 1.5rem; text-align: center; background: var(--bg-secondary); cursor: pointer; transition: all 0.2s ease; margin-bottom: 1.5rem;">
+          <input type="file" name="resume_file" id="resume-file-input" accept=".pdf,application/pdf" style="display: none;" required>
+          
+          <div style="width: 60px; height: 60px; border-radius: 16px; background: rgba(2, 132, 199, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto;">
+            <i data-lucide="upload-cloud" style="width: 30px; height: 30px;"></i>
+          </div>
+
+          <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.4rem;">
+            Click to upload or drag & drop your resume
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0 0 1rem 0;">
+            Accepts standard PDF documents (Max {{ max_size_mb }}MB)
+          </p>
+
+          <div id="selected-file-info" style="display: none; padding: 0.6rem 1rem; border-radius: var(--radius-sm); background: var(--card-bg); border: 1px solid var(--border-color); max-width: 320px; margin: 0 auto;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.88rem; font-weight: 600; color: var(--primary);">
+              <i data-lucide="file-text" style="width: 16px; height: 16px;"></i>
+              <span id="selected-file-name">filename.pdf</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Target Role Evaluation (Optional) -->
+        <div class="form-group" style="margin-bottom: 1.75rem;">
+          <label class="form-label" for="target_path_id" style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.4rem;">
+            <i data-lucide="target" style="width: 16px; height: 16px; color: var(--primary);"></i> Target Career Benchmark (Optional)
+          </label>
+          <select name="target_path_id" id="target_path_id" class="form-select" style="padding: 0.75rem;">
+            <option value="">-- Compare against a specific career role --</option>
+            {% for path in career_paths %}
+            <option value="{{ path.id }}" {% if default_path_id == path.id %}selected{% endif %}>
+              {{ path.name }} ({{ path.average_salary }})
+            </option>
+            {% endfor %}
+          </select>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.35rem;">
+            SkillMarket will calculate your role match score and show missing gaps for this specific title.
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" id="submit-btn" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: var(--radius-md);">
+          <i data-lucide="scan" style="width: 18px; height: 18px;"></i>
+          Analyze Resume Skills
+        </button>
+
+      </form>
+    </div>
+
+    <!-- Right Column: Privacy & Guidelines -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      
+      <!-- Privacy Badge Card -->
+      <div class="card" style="padding: 1.5rem; border-left: 4px solid var(--success, #10b981);">
+        <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem;">
+          <i data-lucide="shield-check" style="color: var(--success, #10b981); width: 22px; height: 22px;"></i>
+          <h4 style="font-size: 1.05rem; font-weight: 700; margin: 0; color: var(--text-primary);">Privacy & Safety Guaranteed</h4>
+        </div>
+        <ul style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; margin: 0; padding-left: 1.25rem;">
+          <li style="margin-bottom: 0.35rem;"><strong>100% In-Memory Processing:</strong> Your resume is parsed in volatile memory and is never written or saved to disk.</li>
+          <li style="margin-bottom: 0.35rem;"><strong>No Auto-Profile Overwrite:</strong> You review every single detected skill first and choose what gets added.</li>
+          <li><strong>Zero Third-Party Sharing:</strong> Your document is analyzed purely within your SkillMarket instance.</li>
+        </ul>
+      </div>
+
+      <!-- How it works card -->
+      <div class="card" style="padding: 1.5rem;">
+        <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem;">
+          <i data-lucide="sparkles" style="color: var(--primary);"></i> How It Works
+        </h4>
+        <div style="display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.86rem; color: var(--text-secondary);">
+          <div style="display: flex; gap: 0.75rem;">
+            <div style="width: 22px; height: 22px; border-radius: 50%; background: var(--bg-secondary); color: var(--primary); font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.75rem;">1</div>
+            <div><strong>Text & Token Extraction:</strong> In-memory PDF reader parses your experience, projects, and skills sections.</div>
+          </div>
+          <div style="display: flex; gap: 0.75rem;">
+            <div style="width: 22px; height: 22px; border-radius: 50%; background: var(--bg-secondary); color: var(--primary); font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.75rem;">2</div>
+            <div><strong>Alias Normalization:</strong> Synonyms like "JS", "K8s", "AWS EC2", and "Pentesting" are mapped to canonical industry skills.</div>
+          </div>
+          <div style="display: flex; gap: 0.75rem;">
+            <div style="width: 22px; height: 22px; border-radius: 50%; background: var(--bg-secondary); color: var(--primary); font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.75rem;">3</div>
+            <div><strong>Review & One-Click Sync:</strong> Select or deselect skills and sync directly to your SkillMarket profile.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('resume-file-input');
+  const fileInfo = document.getElementById('selected-file-info');
+  const fileName = document.getElementById('selected-file-name');
+
+  dropZone.addEventListener('click', () => fileInput.click());
+
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = 'var(--primary)';
+    dropZone.style.backgroundColor = 'var(--primary-light, rgba(2, 132, 199, 0.08))';
+  });
+
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.style.borderColor = 'var(--border-color)';
+    dropZone.style.backgroundColor = 'var(--bg-secondary)';
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = 'var(--border-color)';
+    dropZone.style.backgroundColor = 'var(--bg-secondary)';
+    if (e.dataTransfer.files.length) {
+      fileInput.files = e.dataTransfer.files;
+      updateFileName();
+    }
+  });
+
+  fileInput.addEventListener('change', updateFileName);
+
+  function updateFileName() {
+    if (fileInput.files.length > 0) {
+      fileName.textContent = fileInput.files[0].name;
+      fileInfo.style.display = 'block';
+    }
+  }
+});
+</script>
+{% endblock %}

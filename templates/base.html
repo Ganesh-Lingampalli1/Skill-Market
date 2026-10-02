@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en" data-user-theme="{{ current_user.theme_preference if current_user else 'light' }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SkillMarket{% endblock %} – Discover Skills That Actually Pay</title>
+  <meta name="description" content="SkillMarket is a modern career and skill discovery platform helping students and job seekers discover high-paying skills, market demand, and structured career roadmaps.">
+
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+  {% if not request.path.startswith('/admin') %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/ai-assistant.css') }}">
+  {% endif %}
+
+  <!-- Theme Script (executed immediately to prevent FOUC) -->
+  <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <!-- Sticky Navbar -->
+  <header class="navbar">
+    <div class="navbar-container">
+      <!-- Left: Logo & Nav Links -->
+      <div class="navbar-left">
+        <a href="{{ url_for('index') }}" class="brand-logo">
+          <div class="brand-icon">
+            <i data-lucide="trending-up"></i>
+          </div>
+          <div>Skill<span>Market</span></div>
+        </a>
+
+        <nav class="navbar-nav">
+          <ul class="nav-links">
+            <li><a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">Home</a></li>
+            <li><a href="{{ url_for('skills.explore') }}" class="nav-link {% if 'skills' in request.endpoint and request.endpoint != 'skills.detail' %}active{% endif %}">Explore Skills</a></li>
+            <li><a href="{{ url_for('roadmap.list_roadmaps') }}" class="nav-link {% if 'roadmap' in request.endpoint %}active{% endif %}">Career Paths</a></li>
+            <li><a href="{{ url_for('analytics.index') }}" class="nav-link {% if 'analytics' in request.endpoint %}active{% endif %}">Market Insights</a></li>
+            <li><a href="{{ url_for('resources.index') }}" class="nav-link {% if 'resources' in request.endpoint %}active{% endif %}">Resources</a></li>
+            <li><a href="{{ url_for('about') }}" class="nav-link {% if request.endpoint == 'about' %}active{% endif %}">About</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <!-- Right: Search, Theme Toggle, Authentication / User Profile -->
+      <div class="navbar-right">
+        <!-- Quick Search Trigger -->
+        <button type="button" class="search-trigger-btn" aria-label="Search skills and careers">
+          <i data-lucide="search" style="width: 15px; height: 15px;"></i>
+          <span>Search...</span>
+          <span class="search-shortcut">⌘K</span>
+        </button>
+
+        <!-- Light / Dark Mode Toggle -->
+        <button type="button" class="theme-toggle-btn" aria-label="Toggle Theme" title="Toggle Light / Dark Mode">
+          <i data-lucide="moon"></i>
+        </button>
+
+        {% if current_user %}
+          <!-- Notification Bell -->
+          <div class="notification-btn" title="Notifications" role="button" tabindex="0">
+            <i data-lucide="bell"></i>
+            <span class="notification-badge"></span>
+          </div>
+
+          <!-- Authenticated User Profile Dropdown (Top-Right Corner) -->
+          <div class="profile-dropdown-wrapper">
+            <button type="button" class="profile-trigger-btn" aria-haspopup="true" aria-expanded="false">
+              <div class="avatar-circle">{{ current_user.username[:1].upper() }}</div>
+              <span class="profile-name">{{ current_user.username }}</span>
+              <i data-lucide="chevron-down" class="dropdown-arrow"></i>
+            </button>
+
+            <div class="profile-dropdown-menu">
+              <div class="dropdown-header">
+                <div class="dropdown-user-name">👤 {{ current_user.username }}</div>
+                <div class="dropdown-user-email">{{ current_user.email }}</div>
+              </div>
+              <a href="{{ url_for('profile.index') }}" class="dropdown-item">
+                <i data-lucide="user" style="width: 16px; height: 16px;"></i>
+                <span>My Profile</span>
+              </a>
+              <a href="{{ url_for('dashboard.index') }}" class="dropdown-item">
+                <i data-lucide="layout-dashboard" style="width: 16px; height: 16px;"></i>
+                <span>Dashboard</span>
+              </a>
+              <a href="{{ url_for('skill_gap.index') }}" class="dropdown-item">
+                <i data-lucide="target" style="width: 16px; height: 16px;"></i>
+                <span>Skill Gap Analyzer</span>
+              </a>
+              <a href="{{ url_for('resume_analyzer.index') }}" class="dropdown-item">
+                <i data-lucide="file-text" style="width: 16px; height: 16px;"></i>
+                <span>Resume Skill Analyzer</span>
+              </a>
+              <a href="{{ url_for('bookmarks.index') }}" class="dropdown-item">
+                <i data-lucide="bookmark" style="width: 16px; height: 16px;"></i>
+                <span>My Bookmarks</span>
+              </a>
+              <a href="{{ url_for('roadmap.list_roadmaps') }}" class="dropdown-item">
+                <i data-lucide="milestone" style="width: 16px; height: 16px;"></i>
+                <span>My Roadmap</span>
+              </a>
+              <a href="{{ url_for('profile.settings') }}" class="dropdown-item">
+                <i data-lucide="settings" style="width: 16px; height: 16px;"></i>
+                <span>Settings</span>
+              </a>
+              {% if current_user.is_admin %}
+              <div class="dropdown-divider"></div>
+              <a href="{{ url_for('admin.dashboard') }}" class="dropdown-item" style="color: var(--primary);">
+                <i data-lucide="shield" style="width: 16px; height: 16px;"></i>
+                <span>Admin Console</span>
+              </a>
+              {% endif %}
+              <div class="dropdown-divider"></div>
+              <a href="{{ url_for('auth.logout') }}" class="dropdown-item logout-link">
+                <i data-lucide="log-out" style="width: 16px; height: 16px;"></i>
+                <span>Logout</span>
+              </a>
+            </div>
+          </div>
+        {% else %}
+          <!-- Guest Links -->
+          <a href="{{ url_for('auth.login') }}" class="btn btn-ghost btn-sm">Login</a>
+          <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm">Get Started</a>
+        {% endif %}
+
+        <!-- Mobile Navigation Menu Button -->
+        <button type="button" class="mobile-menu-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+          <i data-lucide="menu"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div class="mobile-nav-drawer">
+      <ul class="mobile-nav-links">
+        <li><a href="{{ url_for('index') }}" class="mobile-nav-link {% if request.endpoint == 'index' %}active{% endif %}"><i data-lucide="home" style="width: 16px; height: 16px;"></i> Home</a></li>
+        <li><a href="{{ url_for('skills.explore') }}" class="mobile-nav-link {% if 'skills' in request.endpoint and request.endpoint != 'skills.detail' %}active{% endif %}"><i data-lucide="compass" style="width: 16px; height: 16px;"></i> Explore Skills</a></li>
+        <li><a href="{{ url_for('roadmap.list_roadmaps') }}" class="mobile-nav-link {% if 'roadmap' in request.endpoint %}active{% endif %}"><i data-lucide="map" style="width: 16px; height: 16px;"></i> Career Paths</a></li>
+        <li><a href="{{ url_for('analytics.index') }}" class="mobile-nav-link {% if 'analytics' in request.endpoint %}active{% endif %}"><i data-lucide="bar-chart-2" style="width: 16px; height: 16px;"></i> Market Insights</a></li>
+        <li><a href="{{ url_for('resources.index') }}" class="mobile-nav-link {% if 'resources' in request.endpoint %}active{% endif %}"><i data-lucide="book-open" style="width: 16px; height: 16px;"></i> Resources</a></li>
+        <li><a href="{{ url_for('about') }}" class="mobile-nav-link {% if request.endpoint == 'about' %}active{% endif %}"><i data-lucide="info" style="width: 16px; height: 16px;"></i> About</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <!-- Flash Messages Notifications Container -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="container" style="margin-top: 1.5rem;">
+        {% for category, message in messages %}
+          <div class="toast toast-{{ category if category != 'message' else 'info' }}" style="position: static; margin-bottom: 0.75rem; width: 100%; max-width: 100%;">
+            <i data-lucide="{% if category == 'success' %}check-circle-2{% elif category == 'error' %}alert-circle{% elif category == 'warning' %}alert-triangle{% else %}info{% endif %}" style="flex-shrink:0;"></i>
+            <div style="flex:1;">{{ message }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Main Content -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Quick Search Modal Overlay -->
+  <div class="search-modal-overlay">
+    <div class="search-modal">
+      <div class="search-modal-input-wrapper">
+        <i data-lucide="search" style="color: var(--text-muted); width: 20px; height: 20px;"></i>
+        <input type="text" class="search-modal-input" placeholder="Search skills, topics, or career roadmaps..." autocomplete="off">
+      </div>
+      <div class="search-results-list">
+        <div style="padding: 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+          Type at least 2 characters to search across 25+ skills and 10+ career paths...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Professional Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="brand-logo">
+            <div class="brand-icon">
+              <i data-lucide="trending-up"></i>
+            </div>
+            <div>Skill<span>Market</span></div>
+          </div>
+          <p>Discover in-demand skills, understand market demand and salary potential, explore career paths, and build clear roadmaps.</p>
+          <div style="margin-top: 1rem; display: flex; gap: 0.75rem;">
+            <a href="https://github.com" target="_blank" rel="noopener" class="btn btn-ghost btn-icon-only" aria-label="GitHub"><i data-lucide="github"></i></a>
+            <a href="https://twitter.com" target="_blank" rel="noopener" class="btn btn-ghost btn-icon-only" aria-label="Twitter"><i data-lucide="twitter"></i></a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener" class="btn btn-ghost btn-icon-only" aria-label="LinkedIn"><i data-lucide="linkedin"></i></a>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="footer-title">Platform</h4>
+          <ul class="footer-links">
+            <li><a href="{{ url_for('skills.explore') }}" class="footer-link">Explore Skills</a></li>
+            <li><a href="{{ url_for('roadmap.list_roadmaps') }}" class="footer-link">Career Roadmaps</a></li>
+            <li><a href="{{ url_for('skill_gap.index') }}" class="footer-link">Skill Gap Analyzer</a></li>
+            <li><a href="{{ url_for('resume_analyzer.index') }}" class="footer-link">Resume Skill Analyzer</a></li>
+            <li><a href="{{ url_for('recommendations.index') }}" class="footer-link">Skill Recommendations</a></li>
+            <li><a href="{{ url_for('analytics.index') }}" class="footer-link">Market Insights</a></li>
+            <li><a href="{{ url_for('resources.index') }}" class="footer-link">Learning Resources</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-title">Trending Careers</h4>
+          <ul class="footer-links">
+            <li><a href="{{ url_for('roadmap.detail', slug='python-backend-developer') }}" class="footer-link">Python Developer</a></li>
+            <li><a href="{{ url_for('roadmap.detail', slug='data-scientist') }}" class="footer-link">Data Scientist</a></li>
+            <li><a href="{{ url_for('roadmap.detail', slug='full-stack-developer') }}" class="footer-link">Full Stack Developer</a></li>
+            <li><a href="{{ url_for('roadmap.detail', slug='cloud-engineer') }}" class="footer-link">Cloud Engineer</a></li>
+            <li><a href="{{ url_for('roadmap.detail', slug='cybersecurity-specialist') }}" class="footer-link">Cybersecurity Specialist</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-title">Company</h4>
+          <ul class="footer-links">
+            <li><a href="{{ url_for('about') }}" class="footer-link">About Us</a></li>
+            <li><a href="{{ url_for('admin.login') }}" class="footer-link">Admin Portal</a></li>
+            <li><a href="#" class="footer-link">Privacy Policy</a></li>
+            <li><a href="#" class="footer-link">Terms of Service</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; {{ now.year }} SkillMarket. All rights reserved.</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">
+          * Note: Salary figures are estimated reference figures and may vary by location, company, experience, and role.
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Main JavaScript -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+
+  <!-- Global Floating AI Career Assistant (Disabled in Admin Portal) -->
+  {% if not request.path.startswith('/admin') %}
+    {% include "components/ai_assistant.html" %}
+    <script src="{{ url_for('static', filename='js/ai-assistant.js') }}"></script>
+  {% endif %}
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

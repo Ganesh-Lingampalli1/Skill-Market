@@ -1,0 +1,85 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}User Management – SkillMarket Admin{% endblock %}
+
+{% block admin_content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+  <div>
+    <h1 style="font-size: 2rem; margin-bottom: 0.25rem;">User Account Management</h1>
+    <p style="color: var(--text-muted); margin-bottom: 0;">Monitor verified members, OTP statuses, and administrative access privileges.</p>
+  </div>
+  <div class="badge badge-primary" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+    {{ users|length }} Registered Accounts
+  </div>
+</div>
+
+<div class="card" style="padding: 0; overflow: hidden;">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>User</th>
+        <th>Career Interest</th>
+        <th>Verification</th>
+        <th>Role</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+        <tr>
+          <td>#{{ u.id }}</td>
+          <td>
+            <div style="font-weight: 700; color: var(--text-primary);">{{ u.username }}</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">{{ u.email }}</div>
+          </td>
+          <td>{{ u.career_interest or 'Not Specified' }}</td>
+          <td>
+            {% if u.is_verified %}
+              <span class="badge badge-success">✓ Verified</span>
+            {% else %}
+              <span class="badge badge-warning">Pending OTP</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if u.is_admin %}
+              <span class="badge badge-primary">Administrator</span>
+            {% else %}
+              <span class="badge badge-neutral">Member</span>
+            {% endif %}
+          </td>
+          <td style="font-size: 0.85rem;">{{ u.created_at.strftime('%d %b %Y, %H:%M') if u.created_at else 'N/A' }}</td>
+          <td>
+            <div style="display: flex; gap: 0.5rem;">
+              <!-- Toggle verification form -->
+              <form action="{{ url_for('admin.toggle_verify', id=u.id) }}" method="POST" style="margin: 0;">
+                <button type="submit" class="btn btn-ghost btn-sm" title="Toggle Verification">
+                  {% if u.is_verified %}
+                    <span style="color: var(--warning); font-size: 0.8rem;">Unverify</span>
+                  {% else %}
+                    <span style="color: var(--success); font-size: 0.8rem;">Verify</span>
+                  {% endif %}
+                </button>
+              </form>
+
+              <!-- Toggle admin form -->
+              {% if u.id != current_user.id %}
+              <form action="{{ url_for('admin.toggle_admin', id=u.id) }}" method="POST" style="margin: 0;">
+                <button type="submit" class="btn btn-ghost btn-sm" title="Toggle Admin Role">
+                  {% if u.is_admin %}
+                    <span style="color: var(--danger); font-size: 0.8rem;">Revoke Admin</span>
+                  {% else %}
+                    <span style="color: var(--primary); font-size: 0.8rem;">Make Admin</span>
+                  {% endif %}
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

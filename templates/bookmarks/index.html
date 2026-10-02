@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}My Bookmarks – SkillMarket{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 3rem; padding-bottom: 5rem;">
+
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <div class="badge badge-primary" style="margin-bottom: 0.5rem;">Saved Library</div>
+      <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">My Bookmarks</h1>
+      <p style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 0;">
+        Skills you have marked for future study, career roadmaps, or salary tracking.
+      </p>
+    </div>
+    <span class="badge badge-neutral" style="font-size: 0.9rem; padding: 0.45rem 0.9rem;">
+      <span class="stat-bookmarks-count">{{ total_count }}</span> Saved Skills
+    </span>
+  </div>
+
+  {% if skills %}
+    <div class="skills-grid">
+      {% for skill in skills %}
+        <div class="card skill-card card-interactive">
+          <div class="skill-card-header">
+            <div class="skill-icon">
+              <i data-lucide="{{ skill.icon }}"></i>
+            </div>
+            <!-- Active Bookmark Heart button -->
+            <button type="button" class="bookmark-btn bookmark-toggle-btn active" data-skill-id="{{ skill.id }}" title="Remove from bookmarks" aria-label="Remove bookmark">
+              <i data-lucide="heart" style="width: 18px; height: 18px; fill: currentColor;"></i>
+            </button>
+          </div>
+
+          <a href="{{ url_for('skills.detail', slug=skill.slug) }}">
+            <h3 class="skill-name">{{ skill.name }}</h3>
+          </a>
+          <div class="skill-category">{{ skill.category.name if skill.category else 'Tech' }}</div>
+          
+          <div style="margin-bottom: 0.75rem;">
+            <span class="badge {% if skill.market_demand == 'Very High' %}badge-success{% else %}badge-primary{% endif %}">
+              {{ skill.market_demand }} Demand
+            </span>
+          </div>
+
+          <p class="skill-description">{{ skill.description }}</p>
+
+          <div class="skill-meta-row">
+            <div class="meta-item">
+              <span class="meta-label">Est. Salary</span>
+              <span class="meta-val">{{ skill.salary_formatted }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Difficulty</span>
+              <span class="meta-val">{{ skill.difficulty }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Score</span>
+              <span class="meta-val" style="color: var(--primary);">{{ skill.demand_score }}/100</span>
+            </div>
+          </div>
+
+          <div class="skill-card-footer">
+            <a href="{{ url_for('skills.detail', slug=skill.slug) }}" class="btn btn-primary btn-sm" style="flex: 1;">
+              View Details
+            </a>
+            <form action="{{ url_for('bookmarks.toggle', skill_id=skill.id) }}" method="POST" style="margin: 0;">
+              <button type="submit" class="btn btn-ghost btn-sm" style="color: var(--danger);" title="Remove bookmark">
+                <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <!-- Empty State matching Section 41 specifications -->
+    <div class="empty-state">
+      <div class="empty-state-icon">
+        <i data-lucide="bookmark-minus"></i>
+      </div>
+      <h3 class="empty-state-title">No saved skills yet.</h3>
+      <p class="empty-state-text">
+        Explore skills and save the ones you want to learn.
+      </p>
+      <a href="{{ url_for('skills.explore') }}" class="btn btn-primary">
+        <i data-lucide="search" style="width: 16px; height: 16px;"></i> Explore Skills
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

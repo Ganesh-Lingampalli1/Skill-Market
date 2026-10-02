@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}About Us – SkillMarket{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding-top: 4rem; padding-bottom: 5rem;">
+
+  <div class="badge badge-primary" style="margin-bottom: 0.75rem;">Our Mission</div>
+  <h1 style="font-size: 2.75rem; margin-bottom: 1.25rem;">About SkillMarket</h1>
+  <p style="font-size: 1.2rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 2.5rem;">
+    SkillMarket was built on a simple conviction: students, fresh graduates, and career switchers shouldn't have to guess what skills companies actually pay for.
+  </p>
+
+  <div class="card" style="padding: 2rem; margin-bottom: 2.5rem;">
+    <h3 style="margin-bottom: 1rem;">The Problem with Traditional Tech Education</h3>
+    <p>
+      Aspiring software engineers and data practitioners often find themselves drowning in conflicting tutorials, obsolete syllabi, and generic advice. Meanwhile, technology hiring requirements change rapidly.
+    </p>
+    <p>
+      SkillMarket bridges this gap with transparent, market-driven analytics: connecting skills to real compensation data, verified industry demand scores, and ordered step-by-step career roadmaps.
+    </p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 3rem;">
+    <div class="card" style="padding: 1.5rem;">
+      <div class="stat-icon-wrapper" style="margin-bottom: 1rem;"><i data-lucide="shield-check"></i></div>
+      <h4>Zero Fluff & Verified Quality</h4>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0;">We only index actionable skills and vetted resources from authoritative creators, universities, and official foundations.</p>
+    </div>
+
+    <div class="card" style="padding: 1.5rem;">
+      <div class="stat-icon-wrapper" style="margin-bottom: 1rem; background-color: var(--accent-light); color: var(--accent);"><i data-lucide="trending-up"></i></div>
+      <h4>Market-Driven Roadmaps</h4>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0;">Our sequential paths teach what engineering teams actually look for during interviews and code reviews.</p>
+    </div>
+  </div>
+
+  <div style="text-align: center; padding: 2.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg);">
+    <h3 style="margin-bottom: 0.5rem;">Ready to discover what pays?</h3>
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Get started today with personalized recommendations and roadmap progress tracking.</p>
+    <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Create Your Free Account</a>
+  </div>
+
+</div>
+{% endblock %}

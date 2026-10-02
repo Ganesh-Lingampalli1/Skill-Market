@@ -1,0 +1,127 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Resources Management – SkillMarket Admin{% endblock %}
+
+{% block admin_content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+  <div>
+    <h1 style="font-size: 2rem; margin-bottom: 0.25rem;">Learning Resources Management</h1>
+    <p style="color: var(--text-muted); margin-bottom: 0;">Add or curate documentation, tutorials, courses, and practice labs.</p>
+  </div>
+  <button type="button" class="btn btn-primary" onclick="document.getElementById('add-res-card').scrollIntoView({ behavior: 'smooth' });">
+    <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Add Resource
+  </button>
+</div>
+
+<!-- Resources Table -->
+<div class="card" style="padding: 0; overflow: hidden; margin-bottom: 3rem;">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Type</th>
+        <th>Provider</th>
+        <th>Associated Skill</th>
+        <th>Cost</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in resources %}
+        <tr>
+          <td>#{{ r.id }}</td>
+          <td>
+            <div style="font-weight: 600; color: var(--text-primary);">{{ r.title }}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); max-width: 320px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+              {{ r.url }}
+            </div>
+          </td>
+          <td><span class="badge badge-neutral">{{ r.type }}</span></td>
+          <td>{{ r.provider }}</td>
+          <td>{{ r.skill.name if r.skill else 'General' }}</td>
+          <td>
+            {% if r.is_free %}<span class="badge badge-success">Free</span>{% else %}<span class="badge badge-warning">Paid</span>{% endif %}
+          </td>
+          <td>
+            <div style="display: flex; gap: 0.5rem;">
+              <a href="{{ r.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" title="Test URL">
+                <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+              </a>
+              <form action="{{ url_for('admin.delete_resource', id=r.id) }}" method="POST" onsubmit="return confirm('Delete this resource?');" style="margin: 0;">
+                <button type="submit" class="btn btn-ghost btn-sm" style="color: var(--danger);" title="Delete Resource">
+                  <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Add Resource Form -->
+<div class="card" id="add-res-card" style="padding: 2rem;">
+  <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+    <i data-lucide="plus-circle" style="color: var(--primary);"></i> Add Curated Resource
+  </h3>
+
+  <form action="{{ url_for('admin.add_resource') }}" method="POST">
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+      <div class="form-group" style="margin: 0;">
+        <label class="form-label">Resource Title *</label>
+        <input type="text" name="title" class="form-control" placeholder="e.g. Official Fastify Documentation" required>
+      </div>
+
+      <div class="form-group" style="margin: 0;">
+        <label class="form-label">Associated Skill</label>
+        <select name="skill_id" class="form-select">
+          <option value="">General (No specific skill)</option>
+          {% for s in skills %}
+            <option value="{{ s.id }}">{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+      <div class="form-group" style="margin: 0;">
+        <label class="form-label">Resource Type</label>
+        <select name="type" class="form-select">
+          <option value="Documentation">Documentation</option>
+          <option value="Video Course">Video Course</option>
+          <option value="Practice">Practice / Exercises</option>
+          <option value="Course">Full Course</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin: 0;">
+        <label class="form-label">Provider Name</label>
+        <input type="text" name="provider" class="form-control" placeholder="e.g. MDN, Coursera, freeCodeCamp" required>
+      </div>
+
+      <div class="form-group" style="margin: 0;">
+        <label class="form-label">Resource URL *</label>
+        <input type="url" name="url" class="form-control" placeholder="https://..." required>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Summary / Description</label>
+      <textarea name="description" class="form-control" rows="2" placeholder="Brief rationale of what this resource teaches..."></textarea>
+    </div>
+
+    <div style="margin-bottom: 1.5rem;">
+      <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+        <input type="checkbox" name="is_free" value="1" checked>
+        <span style="font-weight: 600; font-size: 0.9rem;">Free Resource (No paywall)</span>
+      </label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+      <i data-lucide="save" style="width: 16px; height: 16px;"></i> Save Resource
+    </button>
+  </form>
+</div>
+{% endblock %}

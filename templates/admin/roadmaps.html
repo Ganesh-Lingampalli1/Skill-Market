@@ -1,0 +1,151 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Roadmaps Management – SkillMarket Admin{% endblock %}
+
+{% block admin_content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+  <div>
+    <h1 style="font-size: 2rem; margin-bottom: 0.25rem;">Roadmaps & Curriculum Management</h1>
+    <p style="color: var(--text-muted); margin-bottom: 0;">Construct structured career paths and sequence individual milestones.</p>
+  </div>
+  <button type="button" class="btn btn-primary" onclick="document.getElementById('add-roadmap-card').scrollIntoView({ behavior: 'smooth' });">
+    <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Create New Roadmap
+  </button>
+</div>
+
+<!-- Roadmaps List with Accordion Steps -->
+<div style="display: flex; flex-direction: column; gap: 2rem; margin-bottom: 3.5rem;">
+  {% for r in roadmaps %}
+    <div class="card" style="padding: 1.75rem;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+            <h3 style="font-size: 1.35rem; margin-bottom: 0;">{{ r.name }}</h3>
+            {% if r.trending %}<span class="badge badge-warning">Trending</span>{% endif %}
+          </div>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0;">
+            {{ r.difficulty }} · {{ r.estimated_duration }} · {{ r.average_salary }}
+          </p>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem;">
+          <a href="{{ url_for('roadmap.detail', slug=r.slug) }}" target="_blank" class="btn btn-outline btn-sm">
+            View Live <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+          </a>
+          <form action="{{ url_for('admin.delete_roadmap', id=r.id) }}" method="POST" onsubmit="return confirm('Delete entire roadmap {{ r.name }}?');" style="margin: 0;">
+            <button type="submit" class="btn btn-ghost btn-sm" style="color: var(--danger);">
+              <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Steps Table within Roadmap -->
+      <div style="background: var(--bg-tertiary); border-radius: var(--radius-md); padding: 1rem; border: 1px solid var(--border-color); margin-bottom: 1.25rem;">
+        <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.75rem;">
+          Roadmap Milestones ({{ r.steps|length }} Steps)
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          {% for step in r.steps %}
+            <div style="display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 0.65rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <span class="badge badge-neutral">{{ "%02d" % step.sequence_order }}</span>
+                <div>
+                  <div style="font-weight: 600; font-size: 0.95rem;">{{ step.step_title }}</div>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">{{ step.step_description }}</div>
+                </div>
+              </div>
+
+              <form action="{{ url_for('admin.delete_step', step_id=step.id) }}" method="POST" onsubmit="return confirm('Delete this step?');" style="margin: 0;">
+                <button type="submit" class="btn btn-ghost btn-sm" style="color: var(--danger); padding: 0.2rem 0.5rem;" title="Delete Step">
+                  <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                </button>
+              </form>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Add Step to this Roadmap Form -->
+      <form action="{{ url_for('admin.add_step', id=r.id) }}" method="POST" style="display: flex; gap: 0.75rem; align-items: center; background: var(--bg-primary); padding: 0.75rem; border-radius: var(--radius-md); border: 1px dashed var(--border-color);">
+        <input type="text" name="step_title" class="form-control form-control-sm" placeholder="Step title (e.g. Docker Volumes)" required style="flex: 2;">
+        <input type="text" name="step_description" class="form-control form-control-sm" placeholder="Milestone description..." style="flex: 3;">
+        <select name="skill_id" class="form-select form-select-sm" style="flex: 2;">
+          <option value="">Link Skill (Optional)</option>
+          {% for s in skills %}
+            <option value="{{ s.id }}">{{ s.name }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm" style="flex-shrink: 0;">
+          <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Add Step
+        </button>
+      </form>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Add Roadmap Form -->
+<div class="card" id="add-roadmap-card" style="padding: 2rem;">
+  <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+    <i data-lucide="map-pin" style="color: var(--primary);"></i> Create New Career Path Roadmap
+  </h3>
+
+  <form action="{{ url_for('admin.add_roadmap') }}" method="POST">
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+      <div class="form-group" style="margin: 0;">
+        <label class="form-label">Career Path Name *</label>
+        <input type="text" name="name" class="form-control" placeholder="e.g. AI Systems Architect" required>
+      </div>
+
+      <div class="form-group" style="margin: 0;">
+        <label class="form-label">Category</label>
+        <select name="category_id" class="form-select">
+          <option value="">Select Domain</option>
+          {% for c in categories %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Description *</label>
+      <textarea name="description" class="form-control" rows="3" placeholder="High-level description of what this role entails..." required></textarea>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+      <div class="form-group" style="margin: 0;">
+        <label class="form-label">Difficulty</label>
+        <input type="text" name="difficulty" class="form-control" value="Beginner → Advanced">
+      </div>
+
+      <div class="form-group" style="margin: 0;">
+        <label class="form-label">Demand Level</label>
+        <input type="text" name="demand_level" class="form-control" value="High Demand">
+      </div>
+
+      <div class="form-group" style="margin: 0;">
+        <label class="form-label">Estimated Duration</label>
+        <input type="text" name="estimated_duration" class="form-control" value="6 months">
+      </div>
+
+      <div class="form-group" style="margin: 0;">
+        <label class="form-label">Average Salary</label>
+        <input type="text" name="average_salary" class="form-control" value="₹8L – ₹24L+">
+      </div>
+    </div>
+
+    <div style="margin-bottom: 1.5rem;">
+      <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+        <input type="checkbox" name="trending" value="1">
+        <span style="font-weight: 600; font-size: 0.9rem;">Mark as Trending on Homepage & Dashboard</span>
+      </label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+      <i data-lucide="save" style="width: 16px; height: 16px;"></i> Create Roadmap
+    </button>
+  </form>
+</div>
+{% endblock %}

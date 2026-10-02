@@ -1,0 +1,25 @@
+# Environment variables & secrets
+.env
+.env.txt
+.env.local
+*.env
+
+# Database
+*.db
+*.sqlite3
+
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Testing & logs
+.pytest_cache/
+*.log

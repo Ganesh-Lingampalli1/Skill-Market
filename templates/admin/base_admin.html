@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-user-theme="{{ current_user.theme_preference if current_user else 'dark' }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Admin Console{% endblock %} – SkillMarket Admin</title>
+
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+
+  <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+
+  <style>
+    .admin-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+    }
+    .admin-sidebar {
+      background-color: var(--card-bg);
+      border-right: 1px solid var(--border-color);
+      padding: 1.5rem 1rem;
+      display: flex;
+      flex-direction: column;
+    }
+    .admin-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 0.925rem;
+      margin-bottom: 0.35rem;
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    .admin-nav-item:hover, .admin-nav-item.active {
+      background-color: var(--primary-light);
+      color: var(--primary-text);
+    }
+    .admin-main {
+      padding: 2.5rem 3rem;
+      background-color: var(--bg-primary);
+      overflow-y: auto;
+    }
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .admin-table th {
+      text-align: left;
+      padding: 0.85rem 1rem;
+      background-color: var(--bg-tertiary);
+      border-bottom: 2px solid var(--border-color);
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .admin-table td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-secondary);
+    }
+    .admin-table tr:hover {
+      background-color: var(--bg-tertiary);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="admin-layout">
+    <!-- Admin Sidebar matching Section 32 -->
+    <aside class="admin-sidebar">
+      <div style="padding: 0 0.5rem 1.5rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+        <a href="{{ url_for('index') }}" class="brand-logo">
+          <div class="brand-icon"><i data-lucide="trending-up"></i></div>
+          <div>Skill<span>Market</span></div>
+        </a>
+        <div style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-top: 0.35rem;">
+          Administrator Console
+        </div>
+      </div>
+
+      <nav style="flex: 1;">
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-item {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+          <i data-lucide="layout-dashboard" style="width: 18px; height: 18px;"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="{{ url_for('admin.users') }}" class="admin-nav-item {% if request.endpoint == 'admin.users' %}active{% endif %}">
+          <i data-lucide="users" style="width: 18px; height: 18px;"></i>
+          <span>Users</span>
+        </a>
+        <a href="{{ url_for('admin.skills') }}" class="admin-nav-item {% if request.endpoint == 'admin.skills' %}active{% endif %}">
+          <i data-lucide="compass" style="width: 18px; height: 18px;"></i>
+          <span>Skills</span>
+        </a>
+        <a href="{{ url_for('admin.resources') }}" class="admin-nav-item {% if request.endpoint == 'admin.resources' %}active{% endif %}">
+          <i data-lucide="book-open" style="width: 18px; height: 18px;"></i>
+          <span>Resources</span>
+        </a>
+        <a href="{{ url_for('admin.roadmaps') }}" class="admin-nav-item {% if request.endpoint == 'admin.roadmaps' %}active{% endif %}">
+          <i data-lucide="map" style="width: 18px; height: 18px;"></i>
+          <span>Roadmaps</span>
+        </a>
+        <a href="{{ url_for('analytics.index') }}" class="admin-nav-item" target="_blank">
+          <i data-lucide="bar-chart-3" style="width: 18px; height: 18px;"></i>
+          <span>Analytics View</span>
+        </a>
+        <a href="{{ url_for('profile.settings') }}" class="admin-nav-item">
+          <i data-lucide="settings" style="width: 18px; height: 18px;"></i>
+          <span>Settings</span>
+        </a>
+      </nav>
+
+      <div style="padding-top: 1rem; border-top: 1px solid var(--border-color);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+          <button type="button" class="theme-toggle-btn" aria-label="Toggle theme">
+            <i data-lucide="moon"></i>
+          </button>
+          <a href="{{ url_for('index') }}" class="btn btn-ghost btn-sm">Public Site →</a>
+        </div>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm" style="width: 100%; color: var(--danger);">
+          <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> Logout
+        </a>
+      </div>
+    </aside>
+
+    <!-- Admin Content Area -->
+    <main class="admin-main">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="toast toast-{{ category if category != 'message' else 'info' }}" style="position: static; margin-bottom: 1.5rem; width: 100%; max-width: 100%;">
+              <i data-lucide="{% if category == 'success' %}check-circle-2{% elif category == 'error' %}alert-circle{% else %}info{% endif %}"></i>
+              <div>{{ message }}</div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      {% block admin_content %}{% endblock %}
+    </main>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

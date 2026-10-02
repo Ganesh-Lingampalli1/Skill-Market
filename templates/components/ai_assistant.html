@@ -1,0 +1,95 @@
+<!-- Global Floating AI Career Assistant Widget -->
+<div id="sm-ai-widget" class="sm-ai-widget" data-user="{{ current_user.username if current_user else '' }}" data-interest="{{ current_user.career_interest if current_user else '' }}">
+  
+  <!-- Floating Launcher Button -->
+  <div id="sm-ai-launcher" class="sm-ai-launcher" title="SkillMarket AI Career Assistant" role="button" tabindex="0" aria-label="Open AI Career Assistant">
+    <div class="sm-ai-launcher-icon">
+      <i data-lucide="bot" style="width: 26px; height: 26px;"></i>
+    </div>
+    <span class="sm-ai-pulse"></span>
+    <span class="sm-ai-badge">AI</span>
+  </div>
+
+  <!-- Chat Window -->
+  <div id="sm-ai-window" class="sm-ai-window" style="display: none;" role="dialog" aria-label="AI Career Assistant Chat">
+    <!-- Header (Acts as Drag Handle) -->
+    <div id="sm-ai-header" class="sm-ai-header">
+      <div class="sm-ai-header-info">
+        <div class="sm-ai-avatar">
+          <i data-lucide="bot" style="width: 18px; height: 18px;"></i>
+        </div>
+        <div>
+          <div class="sm-ai-title">Career Assistant</div>
+          <div class="sm-ai-status">
+            <span class="sm-ai-status-dot"></span>
+            <span id="sm-ai-model-tag">Skill Intelligence</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sm-ai-header-actions">
+        <button type="button" id="sm-ai-clear-btn" class="sm-ai-btn-icon" title="Clear conversation" aria-label="Clear chat">
+          <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i>
+        </button>
+        <button type="button" id="sm-ai-close-btn" class="sm-ai-btn-icon" title="Minimize assistant" aria-label="Close chat">
+          <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Active Page / Context Pill -->
+    <div id="sm-ai-context-pill" class="sm-ai-context-pill">
+      <i data-lucide="compass" style="width: 12px; height: 12px;"></i>
+      <span id="sm-ai-context-text">Page: {{ request.path }}</span>
+    </div>
+
+    <!-- Quick Prompt Suggestions Chips -->
+    <div id="sm-ai-suggestions" class="sm-ai-suggestions">
+      <button type="button" class="sm-ai-chip" data-prompt="What are my top skill gaps for {{ current_user.career_interest if current_user and current_user.career_interest else 'my target role' }}?">
+        🎯 My Skill Gaps
+      </button>
+      <button type="button" class="sm-ai-chip" data-prompt="How can I optimize my resume bullet points for ATS screeners?">
+        📄 Resume Tips
+      </button>
+      <button type="button" class="sm-ai-chip" data-prompt="What are the highest paying tech skills in 2026?">
+        💼 Highest Salaries
+      </button>
+      <button type="button" class="sm-ai-chip" data-prompt="What portfolio project should I build next to prove my skills?">
+        🚀 Project Ideas
+      </button>
+    </div>
+
+    <!-- Messages Container -->
+    <div id="sm-ai-messages" class="sm-ai-messages">
+      <!-- Welcome Message -->
+      <div class="sm-ai-message sm-ai-message-assistant">
+        <div class="sm-ai-bubble">
+          <p><strong>Hi {{ current_user.username if current_user else 'there' }}! 👋</strong> I'm your SkillMarket Career Assistant.</p>
+          <p>Ask me anything about career roadmaps, closing your skill gaps, improving resume impact, or discovering top-paying tech roles.</p>
+        </div>
+        <div class="sm-ai-time">Just now</div>
+      </div>
+    </div>
+
+    <!-- Typing Indicator -->
+    <div id="sm-ai-typing" class="sm-ai-typing" style="display: none;">
+      <div class="sm-ai-typing-dot"></div>
+      <div class="sm-ai-typing-dot"></div>
+      <div class="sm-ai-typing-dot"></div>
+      <span>Assistant is thinking...</span>
+    </div>
+
+    <!-- Input Footer -->
+    <div class="sm-ai-footer">
+      <form id="sm-ai-form" class="sm-ai-form">
+        <input type="text" id="sm-ai-input" class="sm-ai-input" 
+               placeholder="Ask anything about your career or skills..." 
+               autocomplete="off" maxlength="1000">
+        <button type="submit" id="sm-ai-send" class="sm-ai-send" aria-label="Send message">
+          <i data-lucide="send" style="width: 16px; height: 16px;"></i>
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>

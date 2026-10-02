@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Career Paths & Roadmaps – SkillMarket{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 3rem; padding-bottom: 5rem;">
+
+  <!-- Header -->
+  <div style="max-width: 780px; margin-bottom: 2.5rem;">
+    <div class="badge badge-primary" style="margin-bottom: 0.5rem;">Career Navigation</div>
+    <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Career Paths & Learning Roadmaps</h1>
+    <p style="font-size: 1.1rem; color: var(--text-secondary);">
+      End-to-end curriculum roadmaps curated by engineering leaders to take you from foundational syntax to job-ready production mastery.
+    </p>
+  </div>
+
+  <!-- Category Filter Tabs -->
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2.5rem;">
+    <a href="{{ url_for('roadmap.list_roadmaps') }}" class="badge {% if not selected_category %}badge-primary{% else %}badge-neutral{% endif %}" style="padding: 0.5rem 1rem; font-size: 0.85rem; text-transform: none;">
+      All Roadmaps
+    </a>
+    {% for cat in categories %}
+      <a href="{{ url_for('roadmap.list_roadmaps', category=cat.slug) }}" class="badge {% if selected_category and selected_category.slug == cat.slug %}badge-primary{% else %}badge-neutral{% endif %}" style="padding: 0.5rem 1rem; font-size: 0.85rem; text-transform: none;">
+        {{ cat.name }}
+      </a>
+    {% endfor %}
+  </div>
+
+  <!-- Roadmaps Grid -->
+  <div class="roadmap-grid">
+    {% for path in roadmaps %}
+      <div class="card roadmap-card card-interactive">
+        <div>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+            <div class="skill-icon" style="width: 44px; height: 44px; font-size: 1.25rem;">
+              <i data-lucide="{{ path.icon }}"></i>
+            </div>
+            <span class="badge badge-primary">{{ path.demand_level }}</span>
+          </div>
+
+          <h3 class="roadmap-title">{{ path.name }}</h3>
+          <p class="roadmap-desc">{{ path.description }}</p>
+
+          <div class="roadmap-stats">
+            <span class="badge badge-neutral"><i data-lucide="bar-chart-2" style="width: 12px; height: 12px;"></i> {{ path.difficulty }}</span>
+            <span class="badge badge-neutral"><i data-lucide="clock" style="width: 12px; height: 12px;"></i> {{ path.estimated_duration }}</span>
+            <span class="badge badge-neutral"><i data-lucide="layers" style="width: 12px; height: 12px;"></i> {{ path.steps|length }} Steps</span>
+          </div>
+
+          <!-- User active progress if available -->
+          {% if user_progress_map and path.id in user_progress_map and user_progress_map[path.id].completed > 0 %}
+            <div style="background-color: var(--bg-tertiary); padding: 0.75rem; border-radius: var(--radius-md); margin-top: 1rem;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.35rem;">
+                <span>Your Progress</span>
+                <span style="color: var(--primary);">{{ user_progress_map[path.id].percentage }}% ({{ user_progress_map[path.id].completed }}/{{ user_progress_map[path.id].total }})</span>
+              </div>
+              <div class="progress-track" style="height: 6px;">
+                <div class="progress-bar-fill" style="width: {{ user_progress_map[path.id].percentage }}%;"></div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+
+        <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+          <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary);">
+            {{ path.average_salary }}
+          </div>
+          <a href="{{ url_for('roadmap.detail', slug=path.slug) }}" class="btn btn-primary btn-sm">
+            View Roadmap <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+          </a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

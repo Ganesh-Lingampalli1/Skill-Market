@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error – SkillMarket{% endblock %}
+
+{% block content %}
+<div class="container text-center" style="padding: 6rem 0;">
+  <div style="font-size: 5rem; font-weight: 800; color: var(--danger); line-height: 1; margin-bottom: 1rem;">500</div>
+  <h1 style="font-size: 2rem; margin-bottom: 0.75rem;">Internal Server Error</h1>
+  <p style="color: var(--text-muted); max-width: 460px; margin: 0 auto 2rem;">
+    Something unexpected happened on our server. Our team has been notified.
+  </p>
+  <a href="{{ url_for('index') }}" class="btn btn-primary">Return Home</a>
+</div>
+{% endblock %}

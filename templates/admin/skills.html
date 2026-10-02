@@ -1,0 +1,140 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Skills Management – SkillMarket Admin{% endblock %}
+
+{% block admin_content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+  <div>
+    <h1 style="font-size: 2rem; margin-bottom: 0.25rem;">Skills Management</h1>
+    <p style="color: var(--text-muted); margin-bottom: 0;">Add, update, or remove skills from the discovery engine.</p>
+  </div>
+  <button type="button" class="btn btn-primary" onclick="document.getElementById('add-skill-card').scrollIntoView({ behavior: 'smooth' });">
+    <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Add New Skill
+  </button>
+</div>
+
+<!-- Search Bar -->
+<div class="card" style="padding: 1rem 1.5rem; margin-bottom: 2rem;">
+  <form action="{{ url_for('admin.skills') }}" method="GET" style="display: flex; gap: 1rem;">
+    <input type="text" name="q" class="form-control" placeholder="Search skills by name or description..." value="{{ q or '' }}">
+    <button type="submit" class="btn btn-primary btn-sm">Search</button>
+    {% if q %}<a href="{{ url_for('admin.skills') }}" class="btn btn-ghost btn-sm">Clear</a>{% endif %}
+  </form>
+</div>
+
+<!-- Skills Table -->
+<div class="card" style="padding: 0; overflow: hidden; margin-bottom: 3rem;">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Skill</th>
+        <th>Category</th>
+        <th>Difficulty</th>
+        <th>Demand</th>
+        <th>Salary Range</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in skills %}
+        <tr>
+          <td>#{{ s.id }}</td>
+          <td>
+            <strong style="color: var(--text-primary);">{{ s.name }}</strong>
+            {% if s.trending %}<span class="badge badge-warning" style="font-size: 0.65rem;">Trending</span>{% endif %}
+          </td>
+          <td>{{ s.category.name if s.category else 'Uncategorized' }}</td>
+          <td><span class="badge badge-neutral">{{ s.difficulty }}</span></td>
+          <td><span class="badge badge-primary">{{ s.demand_score }}/100</span></td>
+          <td style="font-weight: 600;">{{ s.salary_formatted }}</td>
+          <td>
+            <div style="display: flex; gap: 0.5rem;">
+              <a href="{{ url_for('skills.detail', slug=s.slug) }}" target="_blank" class="btn btn-ghost btn-sm" title="View Public Page">
+                <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+              </a>
+              <form action="{{ url_for('admin.delete_skill', id=s.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete {{ s.name }}?');" style="margin: 0;">
+                <button type="submit" class="btn btn-ghost btn-sm" style="color: var(--danger);" title="Delete Skill">
+                  <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Add Skill Form Card -->
+<div class="card" id="add-skill-card" style="padding: 2rem;">
+  <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+    <i data-lucide="plus-circle" style="color: var(--primary);"></i> Add New Skill
+  </h3>
+
+  <form action="{{ url_for('admin.add_skill') }}" method="POST">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+      <div class="form-group" style="margin: 0;">
+        <label class="form-label" for="skill-name">Skill Name *</label>
+        <input type="text" id="skill-name" name="name" class="form-control" placeholder="e.g. Next.js" required>
+      </div>
+
+      <div class="form-group" style="margin: 0;">
+        <label class="form-label" for="category_id">Category *</label>
+        <select id="category_id" name="category_id" class="form-select" required>
+          {% for c in categories %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="description">Description</label>
+      <textarea id="description" name="description" class="form-control" rows="3" placeholder="Overview of the skill..." required></textarea>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+      <div class="form-group" style="margin: 0;">
+        <label class="form-label">Difficulty</label>
+        <select name="difficulty" class="form-select">
+          <option value="Beginner">Beginner</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin: 0;">
+        <label class="form-label">Demand Score (1-100)</label>
+        <input type="number" name="demand_score" class="form-control" value="85" min="1" max="100">
+      </div>
+
+      <div class="form-group" style="margin: 0;">
+        <label class="form-label">Min Salary (₹ Lakhs)</label>
+        <input type="number" name="salary_min" class="form-control" value="5" min="1">
+      </div>
+
+      <div class="form-group" style="margin: 0;">
+        <label class="form-label">Max Salary (₹ Lakhs)</label>
+        <input type="number" name="salary_max" class="form-control" value="18" min="1">
+      </div>
+
+      <div class="form-group" style="margin: 0;">
+        <label class="form-label">Learning Duration</label>
+        <input type="text" name="learning_duration" class="form-control" value="6-8 weeks">
+      </div>
+    </div>
+
+    <div style="margin-bottom: 1.5rem;">
+      <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+        <input type="checkbox" name="trending" value="1">
+        <span style="font-weight: 600; font-size: 0.9rem;">Mark as Trending Skill</span>
+      </label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+      <i data-lucide="save" style="width: 16px; height: 16px;"></i> Save Skill to Database
+    </button>
+  </form>
+</div>
+{% endblock %}

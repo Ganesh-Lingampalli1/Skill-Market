@@ -1,0 +1,705 @@
+{% extends "base.html" %}
+
+{% block title %}Career Dashboard – SkillMarket{% endblock %}
+
+{% block content %}
+<div class="container dash-container">
+
+  <!-- 1. Hero Welcome & Career Identity Banner -->
+  <div class="dash-welcome-card">
+    <div class="dash-welcome-top">
+      <div>
+        <h1 class="dash-welcome-title">
+          Welcome back, {{ user.username }} 👋
+        </h1>
+        <p class="dash-welcome-sub">
+          Ready to build your next career skill?
+        </p>
+
+        <!-- User Profile Metadata Badges -->
+        <div class="dash-profile-badges">
+          <span class="dash-badge-chip" title="Selected Career Interest">
+            <i data-lucide="target" style="width: 14px; height: 14px; color: var(--primary);"></i>
+            <span>{{ user.career_interest or 'Software Engineering' }}</span>
+          </span>
+          <span class="dash-badge-chip" title="Proficiency Level">
+            <i data-lucide="award" style="width: 14px; height: 14px; color: var(--warning);"></i>
+            <span>{{ user.experience_level or 'Beginner' }}</span>
+          </span>
+          <span class="dash-badge-chip" title="Live Account Status">
+            <span class="dash-status-dot"></span>
+            <span>Active Career Learner</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Header Action Buttons -->
+      <div class="dash-welcome-actions">
+        <a href="{{ url_for('recommendations.index') }}" class="btn btn-outline btn-sm">
+          <i data-lucide="sparkles" style="width: 15px; height: 15px;"></i> Skill Matcher
+        </a>
+        <a href="{{ url_for('skills.explore') }}" class="btn btn-primary btn-sm">
+          <i data-lucide="compass" style="width: 15px; height: 15px;"></i> Explore Skills
+        </a>
+        <a href="{{ url_for('analytics.index') }}" class="btn btn-secondary btn-sm">
+          <i data-lucide="line-chart" style="width: 15px; height: 15px;"></i> Market Insights
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Section: 4 Attractive KPI Cards -->
+  <div class="dash-kpi-grid">
+    <!-- KPI 1: Skills Tracked -->
+    <div class="dash-kpi-card">
+      <div>
+        <div class="dash-kpi-header">
+          <div class="dash-kpi-icon blue">
+            <i data-lucide="compass"></i>
+          </div>
+          <span class="badge badge-primary">Catalog</span>
+        </div>
+        <div class="dash-kpi-value">{{ stats.skills_explored }}</div>
+        <div class="dash-kpi-label">Skills Explored</div>
+      </div>
+      <div class="dash-kpi-footer">
+        <span class="trend-up"><i data-lucide="trending-up" style="width: 13px; height: 13px;"></i> Top In-Demand</span>
+        <span>High market velocity</span>
+      </div>
+    </div>
+
+    <!-- KPI 2: Active Roadmap Progress -->
+    <div class="dash-kpi-card">
+      <div>
+        <div class="dash-kpi-header">
+          <div class="dash-kpi-icon amber">
+            <i data-lucide="map"></i>
+          </div>
+          <span class="badge badge-warning">Active Path</span>
+        </div>
+        <div class="dash-kpi-value">{{ active_progress_pct }}%</div>
+        <div class="dash-kpi-label">Roadmap Progress</div>
+        <div class="progress-track" style="height: 6px; margin-bottom: 0.5rem;">
+          <div class="progress-bar-fill" style="width: {{ active_progress_pct }}%;"></div>
+        </div>
+      </div>
+      <div class="dash-kpi-footer">
+        <span style="color: var(--text-primary); font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+          {{ active_path.name if active_path else 'Career Roadmap' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- KPI 3: Saved Resources / Bookmarks -->
+    <div class="dash-kpi-card">
+      <div>
+        <div class="dash-kpi-header">
+          <div class="dash-kpi-icon indigo">
+            <i data-lucide="bookmark"></i>
+          </div>
+          <span class="badge badge-neutral">Library</span>
+        </div>
+        <div class="dash-kpi-value stat-bookmarks-count">{{ stats.bookmarked_skills }}</div>
+        <div class="dash-kpi-label">Bookmarked Skills</div>
+      </div>
+      <div class="dash-kpi-footer">
+        <a href="{{ url_for('bookmarks.index') }}" style="color: var(--primary); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem;">
+          View Saved Skills <i data-lucide="arrow-right" style="width: 13px; height: 13px;"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- KPI 4: Skill-Market Score -->
+    <div class="dash-kpi-card">
+      <div>
+        <div class="dash-kpi-header">
+          <div class="dash-kpi-icon emerald">
+            <i data-lucide="zap"></i>
+          </div>
+          <span class="badge badge-success">High Match</span>
+        </div>
+        <div class="dash-kpi-value">94<span style="font-size: 1.15rem; font-weight: 600; color: var(--text-muted);">/100</span></div>
+        <div class="dash-kpi-label">Skill-Market Score</div>
+      </div>
+      <div class="dash-kpi-footer">
+        <span class="trend-up"><i data-lucide="trending-up" style="width: 13px; height: 13px;"></i> +4.8%</span>
+        <span>Hiring compatibility</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Section: Quick Actions Ribbon -->
+  <div class="dash-quick-actions-bar">
+    <div class="dash-quick-title">
+      <i data-lucide="zap" style="width: 16px; height: 16px; color: var(--primary);"></i>
+      <span>Quick Actions:</span>
+    </div>
+    <div class="dash-quick-buttons">
+      <a href="{{ url_for('skill_gap.index') }}" class="dash-quick-btn" style="border-color: var(--primary); color: var(--primary);">
+        <i data-lucide="target" style="width: 14px; height: 14px;"></i> Skill Gap Analyzer
+      </a>
+      <a href="{{ url_for('resume_analyzer.index') }}" class="dash-quick-btn" style="border-color: var(--success, #10b981); color: var(--success, #10b981);">
+        <i data-lucide="file-check" style="width: 14px; height: 14px;"></i> Resume AI Analyzer
+      </a>
+      <a href="{{ url_for('skills.explore') }}" class="dash-quick-btn">
+        <i data-lucide="search" style="width: 14px; height: 14px;"></i> Explore Skills
+      </a>
+      <a href="{{ url_for('recommendations.index') }}" class="dash-quick-btn">
+        <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i> Get Recommendations
+      </a>
+      {% if active_path %}
+      <a href="{{ url_for('roadmap.detail', slug=active_path.slug) }}" class="dash-quick-btn">
+        <i data-lucide="arrow-right-circle" style="width: 14px; height: 14px;"></i> Continue Roadmap
+      </a>
+      {% endif %}
+      <a href="{{ url_for('roadmap.list_roadmaps') }}" class="dash-quick-btn">
+        <i data-lucide="milestone" style="width: 14px; height: 14px;"></i> Career Roadmaps
+      </a>
+      <a href="{{ url_for('analytics.index') }}" class="dash-quick-btn">
+        <i data-lucide="bar-chart-2" style="width: 14px; height: 14px;"></i> Market Insights
+      </a>
+      <a href="{{ url_for('bookmarks.index') }}" class="dash-quick-btn">
+        <i data-lucide="bookmark" style="width: 14px; height: 14px;"></i> My Bookmarks
+      </a>
+      <a href="{{ url_for('resources.index') }}" class="dash-quick-btn">
+        <i data-lucide="book-open" style="width: 14px; height: 14px;"></i> Learning Resources
+      </a>
+    </div>
+  </div>
+
+  <!-- Advanced Career Intelligence Shortcuts (Skill Gap & Resume AI) -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+    <!-- Skill Gap Analyzer Card -->
+    <div class="card" style="padding: 1.75rem; border-radius: var(--radius-lg); border: 1.5px solid var(--border-color); background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-secondary) 100%); display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+          <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(2, 132, 199, 0.12); color: var(--primary); display: flex; align-items: center; justify-content: center;">
+            <i data-lucide="target" style="width: 24px; height: 24px;"></i>
+          </div>
+          <span class="badge badge-primary">Role Readiness</span>
+        </div>
+        <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 0.4rem; color: var(--text-primary);">
+          Skill Gap Analyzer
+        </h3>
+        <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1.25rem;">
+          Benchmark your skills against 10 industry roles. Pinpoint exact missing competencies, calculate readiness score, and get a structured learning sequence.
+        </p>
+      </div>
+      <div style="display: flex; gap: 0.75rem; align-items: center;">
+        <a href="{{ url_for('skill_gap.index') }}" class="btn btn-primary btn-sm" style="flex: 1; justify-content: center;">
+          <i data-lucide="bar-chart-2" style="width: 14px; height: 14px;"></i> Analyze Skill Gap
+        </a>
+        <button type="button" class="btn btn-outline btn-sm ask-ai-dashboard-btn" data-topic="skill-gap" style="white-space: nowrap;">
+          <i data-lucide="bot" style="width: 14px; height: 14px;"></i> Ask AI
+        </button>
+      </div>
+    </div>
+
+    <!-- Resume Skill Analyzer Card -->
+    <div class="card" style="padding: 1.75rem; border-radius: var(--radius-lg); border: 1.5px solid var(--border-color); background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-secondary) 100%); display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+          <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16, 185, 129, 0.12); color: var(--success, #10b981); display: flex; align-items: center; justify-content: center;">
+            <i data-lucide="file-check-2" style="width: 24px; height: 24px;"></i>
+          </div>
+          <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981); font-weight: 700;">In-Memory PDF</span>
+        </div>
+        <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 0.4rem; color: var(--text-primary);">
+          Resume Skill Analyzer
+        </h3>
+        <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1.25rem;">
+          Upload your PDF resume to auto-detect skills and synonyms, benchmark against target job titles, and review before syncing to your profile.
+        </p>
+      </div>
+      <div style="display: flex; gap: 0.75rem; align-items: center;">
+        <a href="{{ url_for('resume_analyzer.index') }}" class="btn btn-outline btn-sm" style="flex: 1; justify-content: center; border-color: var(--success, #10b981); color: var(--success, #10b981);">
+          <i data-lucide="upload" style="width: 14px; height: 14px;"></i> Upload Resume
+        </a>
+        <button type="button" class="btn btn-outline btn-sm ask-ai-dashboard-btn" data-topic="resume" style="white-space: nowrap;">
+          <i data-lucide="bot" style="width: 14px; height: 14px;"></i> Ask AI
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Section: Career Progress (Continue Learning / Active Roadmap) -->
+  {% if active_path %}
+  <div class="dash-active-roadmap-card">
+    <div class="dash-roadmap-top">
+      <div class="dash-roadmap-info">
+        <div class="dash-roadmap-icon">
+          <i data-lucide="{{ active_path.icon }}"></i>
+        </div>
+        <div>
+          <div class="badge badge-primary" style="margin-bottom: 0.35rem;">Active Career Roadmap</div>
+          <h2 style="font-size: 1.55rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text-primary);">
+            {{ active_path.name }}
+          </h2>
+          <div style="display: flex; gap: 0.65rem; flex-wrap: wrap; font-size: 0.85rem; color: var(--text-muted);">
+            <span><i data-lucide="clock" style="width: 13px; height: 13px; display: inline; vertical-align: middle;"></i> {{ active_path.estimated_duration }}</span>
+            <span>&bull;</span>
+            <span><i data-lucide="layers" style="width: 13px; height: 13px; display: inline; vertical-align: middle;"></i> {{ active_path.difficulty }}</span>
+            <span>&bull;</span>
+            <span style="color: var(--primary); font-weight: 700;">{{ active_path.average_salary }} Avg. Salary</span>
+          </div>
+        </div>
+      </div>
+      <div class="dash-roadmap-progress-stat">
+        <div class="dash-roadmap-pct">{{ active_progress_pct }}% Completed</div>
+        <div class="dash-roadmap-count">
+          {{ active_steps|selectattr('is_completed')|list|length }} of {{ active_steps|length }} Milestones Finished
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Progress Bar -->
+    <div class="progress-track" style="margin-bottom: 1.5rem; height: 10px;">
+      <div class="progress-bar-fill" style="width: {{ active_progress_pct }}%;"></div>
+    </div>
+
+    <!-- Current Milestone Callout Box -->
+    {% set ns = namespace(current_milestone=None) %}
+    {% for s in active_steps %}
+      {% if not s.is_completed and not ns.current_milestone %}
+        {% set ns.current_milestone = s %}
+      {% endif %}
+    {% endfor %}
+    <div class="dash-milestone-callout">
+      <div>
+        <div class="dash-milestone-title">
+          <i data-lucide="target" style="width: 16px; height: 16px; color: var(--primary);"></i>
+          {% if ns.current_milestone %}
+            <span>Current Milestone: <strong>{{ ns.current_milestone.title }}</strong></span>
+          {% else %}
+            <span>All Milestones Completed! 🎉</span>
+          {% endif %}
+        </div>
+        <div class="dash-milestone-desc">
+          {% if ns.current_milestone %}
+            Work through verified resources, coding tasks, and project milestones to master this step.
+          {% else %}
+            Outstanding job! You've mastered all core steps in this roadmap. Retake the skill assessment to target your next career tier.
+          {% endif %}
+        </div>
+      </div>
+      <a href="{{ url_for('roadmap.detail', slug=active_path.slug) }}" class="btn btn-primary btn-sm">
+        <i data-lucide="play" style="width: 14px; height: 14px;"></i> Continue Milestone
+      </a>
+    </div>
+
+    <!-- Stepper Milestones Chips -->
+    <div class="dash-steps-list">
+      {% for step in active_steps %}
+        <div class="dash-step-chip {% if step.is_completed %}completed{% elif ns.current_milestone and step.id == ns.current_milestone.id %}active-step{% endif %}">
+          {% if step.is_completed %}
+            <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+          {% elif ns.current_milestone and step.id == ns.current_milestone.id %}
+            <i data-lucide="play-circle" style="width: 14px; height: 14px;"></i>
+          {% else %}
+            <i data-lucide="circle" style="width: 12px; height: 12px; color: var(--text-muted);"></i>
+          {% endif %}
+          <span>{{ step.title }}</span>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Action Footer -->
+    <div style="display: flex; justify-content: flex-end; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+      <a href="{{ url_for('roadmap.detail', slug=active_path.slug) }}" class="btn btn-outline btn-sm">
+        Open Roadmap & Resources <i data-lucide="arrow-right" style="width: 15px; height: 15px;"></i>
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- 5. Section: Market Insights & Career Growth Visualizer -->
+  <div class="dash-market-section">
+    <div style="margin-bottom: 1.5rem;">
+      <div class="badge badge-primary" style="margin-bottom: 0.5rem;">Market Intelligence</div>
+      <h2 style="font-size: 1.85rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.25rem;">
+        Career Growth & Market Insights
+      </h2>
+      <p style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 0;">
+        Real-time hiring demand scores and compensation benchmarks across key skills.
+      </p>
+    </div>
+
+    <div class="dash-market-grid">
+      <!-- Market Chart Card -->
+      <div class="dash-market-chart-card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+          <div>
+            <div style="font-weight: 700; font-size: 1rem; color: var(--text-primary);">
+              Skill Demand Index & Compensation (₹ LPA)
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">
+              Benchmark comparison of top in-demand skills in your focus area
+            </div>
+          </div>
+          <span class="badge badge-success"><i data-lucide="refresh-cw" style="width: 11px; height: 11px;"></i> Updated</span>
+        </div>
+        <div style="height: 270px; position: relative;">
+          <canvas id="dashMarketChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Strategic Career Insights Stack -->
+      <div class="dash-insights-stack">
+        <!-- Insight 1 -->
+        <div class="dash-insight-card">
+          <div class="dash-insight-icon" style="background-color: var(--success-light); color: var(--success-text);">
+            <i data-lucide="trending-up"></i>
+          </div>
+          <div>
+            <div class="dash-insight-title">Hiring Velocity Surge</div>
+            <p class="dash-insight-body">
+              Full-Stack, Cloud & DevOps, and Python backend roles represent over <strong>62% of open engineering positions</strong> across premier technology employers.
+            </p>
+          </div>
+        </div>
+
+        <!-- Insight 2 -->
+        <div class="dash-insight-card">
+          <div class="dash-insight-icon" style="background-color: var(--primary-light); color: var(--primary-text);">
+            <i data-lucide="dollar-sign"></i>
+          </div>
+          <div>
+            <div class="dash-insight-title">Compensation Upside</div>
+            <p class="dash-insight-body">
+              Engineers proficient in system architecture, containerization (Docker), and database scaling command a <strong>30% to 45% starting package premium</strong>.
+            </p>
+          </div>
+        </div>
+
+        <!-- Insight 3 -->
+        <div class="dash-insight-card">
+          <div class="dash-insight-icon" style="background-color: var(--accent-light); color: var(--accent);">
+            <i data-lucide="award"></i>
+          </div>
+          <div>
+            <div class="dash-insight-title">Roadmap Completion Advantage</div>
+            <p class="dash-insight-body">
+              Candidates with verified milestone completion on structured roadmaps experience <strong>3.2x higher interview pass-through rates</strong>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Section: Trending Skills (Demand Level, Salary Range, Trend %, Category) -->
+  <div class="dash-trending-skills-section">
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <div class="badge badge-warning" style="margin-bottom: 0.5rem;">Market Movers</div>
+        <h2 style="font-size: 1.85rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.25rem;">
+          Trending High-Growth Skills
+        </h2>
+        <p style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 0;">
+          Skills with the highest demand velocity and compensation growth this month.
+        </p>
+      </div>
+      <a href="{{ url_for('skills.explore') }}" class="btn btn-ghost btn-sm">
+        View All Skills <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+      </a>
+    </div>
+
+    <div class="dash-trending-grid">
+      {% for rec in recommendations[:4] %}
+        {% set skill = rec.skill %}
+        <div class="dash-trend-card">
+          <div>
+            <div class="dash-trend-header">
+              <div class="skill-icon" style="width: 44px; height: 44px; font-size: 1.25rem;">
+                <i data-lucide="{{ skill.icon }}"></i>
+              </div>
+              <span class="dash-trend-rate-badge">
+                <i data-lucide="trending-up" style="width: 13px; height: 13px;"></i>
+                +{{ ((skill.demand_score * 0.28)|round|int) + 12 }}% Hiring Growth
+              </span>
+            </div>
+
+            <a href="{{ url_for('skills.detail', slug=skill.slug) }}" class="dash-trend-title">
+              {{ skill.name }}
+            </a>
+            <div class="dash-trend-category">
+              {{ skill.category.name if skill.category else 'Software Development' }}
+            </div>
+
+            <!-- Metrics Container -->
+            <div class="dash-trend-metrics">
+              <div class="dash-trend-metric-item">
+                <span class="dash-trend-metric-label">Demand Level</span>
+                <span class="dash-trend-metric-val" style="color: var(--primary);">
+                  {{ skill.market_demand }}
+                </span>
+              </div>
+              <div class="dash-trend-metric-item" style="text-align: right;">
+                <span class="dash-trend-metric-label">Salary Range</span>
+                <span class="dash-trend-metric-val">
+                  {{ skill.salary_formatted }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="dash-trend-footer">
+            <a href="{{ url_for('skills.detail', slug=skill.slug) }}" class="btn btn-outline btn-sm" style="flex: 1;">
+              View Skill
+            </a>
+            <button type="button" class="bookmark-btn bookmark-toggle-btn {% if skill.id in user_bookmark_skill_ids %}active{% endif %}" data-skill-id="{{ skill.id }}" aria-label="Bookmark {{ skill.name }}">
+              <i data-lucide="heart" style="width: 16px; height: 16px; fill: {% if skill.id in user_bookmark_skill_ids %}currentColor{% else %}none{% endif %};"></i>
+            </button>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 7. Section: Recommended For You -->
+  <div style="margin-bottom: 3.5rem;">
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <div class="badge badge-primary" style="margin-bottom: 0.5rem;">Personalized For You</div>
+        <h2 style="font-size: 1.85rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.25rem;">
+          Recommended For You
+        </h2>
+        <p style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 0;">
+          Matched to your interest in <strong>{{ user.career_interest or 'Software Engineering' }}</strong> and current market hiring demand.
+        </p>
+      </div>
+      <a href="{{ url_for('recommendations.index') }}" class="btn btn-ghost btn-sm">
+        Retake Skill Quiz <i data-lucide="sliders-horizontal" style="width: 14px; height: 14px;"></i>
+      </a>
+    </div>
+
+    <div class="skills-grid">
+      {% for rec in recommendations %}
+        {% set skill = rec.skill %}
+        <div class="card skill-card card-interactive">
+          <div class="skill-card-header">
+            <div class="skill-icon">
+              <i data-lucide="{{ skill.icon }}"></i>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span class="badge badge-success" style="font-size: 0.775rem;">{{ rec.match_percentage }}% Match</span>
+              <button type="button" class="bookmark-btn bookmark-toggle-btn {% if skill.id in user_bookmark_skill_ids %}active{% endif %}" data-skill-id="{{ skill.id }}" aria-label="Bookmark {{ skill.name }}">
+                <i data-lucide="heart" style="width: 16px; height: 16px; fill: {% if skill.id in user_bookmark_skill_ids %}currentColor{% else %}none{% endif %};"></i>
+              </button>
+            </div>
+          </div>
+
+          <a href="{{ url_for('skills.detail', slug=skill.slug) }}" style="text-decoration: none;">
+            <h3 class="skill-name">{{ skill.name }}</h3>
+          </a>
+          <div class="skill-category">{{ skill.category.name if skill.category else 'Tech' }}</div>
+          
+          <div style="background: var(--bg-tertiary); border-radius: var(--radius-sm); padding: 0.65rem 0.85rem; margin-bottom: 1rem; font-size: 0.825rem; color: var(--text-secondary); border-left: 3px solid var(--primary); line-height: 1.4;">
+            {{ rec.reasons[0] }}
+          </div>
+
+          <div class="skill-meta-row">
+            <div class="meta-item">
+              <span class="meta-label">Est. Salary</span>
+              <span class="meta-val">{{ skill.salary_formatted }}</span>
+            </div>
+            <div class="meta-item" style="text-align: right;">
+              <span class="meta-label">Demand Level</span>
+              <span class="meta-val" style="color: var(--primary);">{{ skill.market_demand }}</span>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem;">
+            <span class="badge badge-neutral" style="font-size: 0.725rem;">
+              <i data-lucide="clock" style="width: 12px; height: 12px;"></i> {{ skill.learning_duration }}
+            </span>
+            <span class="badge badge-neutral" style="font-size: 0.725rem;">
+              <i data-lucide="bar-chart-2" style="width: 12px; height: 12px;"></i> {{ skill.difficulty }}
+            </span>
+          </div>
+
+          <div class="skill-card-footer">
+            <a href="{{ url_for('skills.detail', slug=skill.slug) }}" class="btn btn-outline btn-sm" style="flex: 1;">
+              View Skill
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 8. Section: Trending Skills Roadmaps (Mandatory Section) -->
+  <div style="padding-top: 2rem; border-top: 1px solid var(--border-color);">
+    <div style="margin-bottom: 2rem;">
+      <div class="badge badge-primary" style="margin-bottom: 0.5rem;">Structured Pathways</div>
+      <h2 style="font-size: 2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.25rem;">
+        Trending Skills Roadmaps
+      </h2>
+      <p style="font-size: 1.05rem; color: var(--text-secondary); margin-bottom: 0;">
+        Explore complete learning paths for today's most valuable skills.
+      </p>
+    </div>
+
+    <div class="roadmap-grid">
+      {% for path in trending_roadmaps %}
+        <div class="card roadmap-card card-interactive">
+          <div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+              <div class="skill-icon" style="width: 44px; height: 44px; font-size: 1.25rem;">
+                <i data-lucide="{{ path.icon }}"></i>
+              </div>
+              <span class="badge badge-primary">{{ path.demand_level }}</span>
+            </div>
+
+            <h3 class="roadmap-title">{{ path.name }}</h3>
+            <p class="roadmap-desc">{{ path.description }}</p>
+
+            <div class="roadmap-stats">
+              <span class="badge badge-neutral">
+                <i data-lucide="bar-chart-2" style="width: 12px; height: 12px;"></i> {{ path.difficulty }}
+              </span>
+              <span class="badge badge-neutral">
+                <i data-lucide="clock" style="width: 12px; height: 12px;"></i> {{ path.estimated_duration }}
+              </span>
+              <span class="badge badge-neutral">
+                <i data-lucide="layers" style="width: 12px; height: 12px;"></i> {{ path.steps|length }} Learning Steps
+              </span>
+            </div>
+          </div>
+
+          <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+            <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary);">
+              {{ path.average_salary }}
+            </div>
+            <a href="{{ url_for('roadmap.detail', slug=path.slug) }}" class="btn btn-primary btn-sm">
+              View Roadmap <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Initialize Chart.js for Market Demand & Compensation Overview
+  const canvas = document.getElementById('dashMarketChart');
+  if (canvas && typeof Chart !== 'undefined') {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#cbd5e1' : '#475569';
+    const gridColor = isDark ? '#243247' : '#e2e8f0';
+
+    const labels = {{ recommendations | map(attribute='skill.name') | list | tojson }};
+    const demandScores = {{ recommendations | map(attribute='skill.demand_score') | list | tojson }};
+    const maxSalaries = {{ recommendations | map(attribute='skill.salary_max') | list | tojson }};
+
+    new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Market Demand (out of 100)',
+            data: demandScores,
+            backgroundColor: isDark ? 'rgba(56, 189, 248, 0.85)' : 'rgba(2, 132, 199, 0.85)',
+            borderColor: isDark ? '#38bdf8' : '#0284c7',
+            borderWidth: 1,
+            borderRadius: 6,
+            yAxisID: 'y'
+          },
+          {
+            label: 'Top Salary Range (₹ LPA)',
+            data: maxSalaries,
+            backgroundColor: isDark ? 'rgba(129, 140, 248, 0.85)' : 'rgba(99, 102, 241, 0.85)',
+            borderColor: isDark ? '#818cf8' : '#6366f1',
+            borderWidth: 1,
+            borderRadius: 6,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              color: textColor,
+              font: { family: 'Inter', size: 11, weight: 600 }
+            }
+          },
+          tooltip: {
+            backgroundColor: isDark ? '#1e293b' : '#0f172a',
+            titleColor: '#ffffff',
+            bodyColor: '#ffffff',
+            padding: 10,
+            cornerRadius: 8,
+            callbacks: {
+              label: (item) => {
+                if (item.datasetIndex === 0) return ` Demand Score: ${item.raw}/100`;
+                return ` Top Compensation: ₹${item.raw} LPA`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: textColor, font: { family: 'Inter', size: 11, weight: 500 } }
+          },
+          y: {
+            type: 'linear',
+            display: true,
+            position: 'left',
+            max: 100,
+            grid: { color: gridColor },
+            ticks: {
+              color: textColor,
+              font: { family: 'Inter', size: 10 },
+              callback: (v) => v + ' pts'
+            }
+          },
+          y1: {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            grid: { drawOnChartArea: false },
+            ticks: {
+              color: textColor,
+              font: { family: 'Inter', size: 10 },
+              callback: (v) => '₹' + v + 'L'
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Dashboard Ask AI Button Handlers
+  document.querySelectorAll('.ask-ai-dashboard-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const topic = this.getAttribute('data-topic');
+      let prompt = "How can I accelerate my career progress on SkillMarket?";
+      if (topic === 'skill-gap') {
+        prompt = "How does the Skill Gap Analyzer work, and what role should I benchmark against first based on my profile?";
+      } else if (topic === 'resume') {
+        prompt = "How should I structure my tech resume for maximum ATS visibility and impact before uploading?";
+      }
+      if (window.SkillMarketAI) {
+        window.SkillMarketAI.openWithPrompt(prompt);
+      }
+    });
+  });
+
+  // Refresh Lucide icons for dynamically added components
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Dashboard Overview – SkillMarket Admin{% endblock %}
+
+{% block admin_content %}
+<div style="margin-bottom: 2.5rem;">
+  <h1 style="font-size: 2rem; margin-bottom: 0.35rem;">System Overview</h1>
+  <p style="color: var(--text-muted); margin-bottom: 0;">Operational health, platform metrics, and management shortcuts.</p>
+</div>
+
+<!-- Statistics Cards matching Section 32 -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem;">
+  <div class="stat-card">
+    <div class="stat-icon-wrapper"><i data-lucide="users"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.total_users }}</div>
+      <div class="stat-label">Total Users</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon-wrapper" style="background-color: var(--success-light); color: var(--success);"><i data-lucide="check-circle-2"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.verified_users }}</div>
+      <div class="stat-label">Verified Users</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon-wrapper" style="background-color: var(--primary-light); color: var(--primary);"><i data-lucide="compass"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.total_skills }}</div>
+      <div class="stat-label">Total Skills</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon-wrapper" style="background-color: var(--accent-light); color: var(--accent);"><i data-lucide="book-open"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.total_resources }}</div>
+      <div class="stat-label">Total Resources</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon-wrapper" style="background-color: var(--warning-light); color: var(--warning);"><i data-lucide="map"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.total_roadmaps }}</div>
+      <div class="stat-label">Total Roadmaps</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon-wrapper" style="background-color: #ffe4e6; color: #e11d48;"><i data-lucide="heart"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.total_bookmarks }}</div>
+      <div class="stat-label">Total Bookmarks</div>
+    </div>
+  </div>
+</div>
+
+<!-- Two Column Layout for Quick Tables -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+  <!-- Recent Users -->
+  <div class="card" style="padding: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h3 style="font-size: 1.15rem; margin-bottom: 0;">Recent Users</h3>
+      <a href="{{ url_for('admin.users') }}" class="btn btn-ghost btn-sm">Manage All →</a>
+    </div>
+
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Status</th>
+          <th>Registered</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in recent_users %}
+          <tr>
+            <td>
+              <div style="font-weight: 600; color: var(--text-primary);">{{ u.username }}</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">{{ u.email }}</div>
+            </td>
+            <td>
+              {% if u.is_verified %}
+                <span class="badge badge-success">Verified</span>
+              {% else %}
+                <span class="badge badge-neutral">Pending</span>
+              {% endif %}
+            </td>
+            <td style="font-size: 0.8rem;">{{ u.created_at.strftime('%d %b %Y') if u.created_at else 'N/A' }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Recent Skills -->
+  <div class="card" style="padding: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h3 style="font-size: 1.15rem; margin-bottom: 0;">Recent Skills</h3>
+      <a href="{{ url_for('admin.skills') }}" class="btn btn-ghost btn-sm">Manage All →</a>
+    </div>
+
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Skill</th>
+          <th>Demand</th>
+          <th>Salary</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in recent_skills %}
+          <tr>
+            <td>
+              <div style="font-weight: 600; color: var(--text-primary);">{{ s.name }}</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">{{ s.category.name if s.category else 'Tech' }}</div>
+            </td>
+            <td><span class="badge badge-primary">{{ s.demand_score }}/100</span></td>
+            <td style="font-weight: 600;">{{ s.salary_formatted }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

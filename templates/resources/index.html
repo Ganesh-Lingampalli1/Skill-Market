@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Curated Learning Resources – SkillMarket{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 3rem; padding-bottom: 5rem;">
+
+  <!-- Header -->
+  <div style="max-width: 780px; margin-bottom: 2.5rem;">
+    <div class="badge badge-primary" style="margin-bottom: 0.5rem;">Learning Directory</div>
+    <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Curated Learning Resources</h1>
+    <p style="font-size: 1.1rem; color: var(--text-secondary);">
+      No junk, no paywalled spam. Handpicked official documentation, top-rated interactive tracks, exercises, and authoritative video courses.
+    </p>
+  </div>
+
+  <!-- Search & Filter Controls -->
+  <div class="card" style="margin-bottom: 2.5rem; padding: 1.5rem;">
+    <form action="{{ url_for('resources.index') }}" method="GET" style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 1rem; align-items: end;">
+      <div>
+        <label class="form-label" for="res-search">Search Resources</label>
+        <input type="text" id="res-search" name="q" class="form-control" placeholder="Search by title, provider, or topic..." value="{{ search_query }}">
+      </div>
+
+      <div>
+        <label class="form-label" for="type-select">Resource Type</label>
+        <select id="type-select" name="type" class="form-select">
+          <option value="all">All Types</option>
+          <option value="Documentation" {% if selected_type == 'Documentation' %}selected{% endif %}>Documentation</option>
+          <option value="Video Course" {% if selected_type == 'Video Course' %}selected{% endif %}>Video Course</option>
+          <option value="Practice" {% if selected_type == 'Practice' %}selected{% endif %}>Practice / Labs</option>
+          <option value="Course" {% if selected_type == 'Course' %}selected{% endif %}>Full Course</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="form-label" for="free-select">Access</label>
+        <select id="free-select" name="free" class="form-select">
+          <option value="">All (Free & Paid)</option>
+          <option value="true" {% if selected_free == 'true' %}selected{% endif %}>Free Resources Only</option>
+          <option value="paid" {% if selected_free == 'paid' %}selected{% endif %}>Paid Courses Only</option>
+        </select>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a href="{{ url_for('resources.index') }}" class="btn btn-ghost">Reset</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Resources List -->
+  <div style="display: flex; flex-direction: column; gap: 1rem;">
+    {% for res in resources %}
+      <div class="card card-interactive" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem; padding: 1.5rem;">
+        <div style="max-width: 720px;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; flex-wrap: wrap;">
+            <span class="badge badge-neutral" style="font-size: 0.75rem;">
+              {% if res.type == 'Documentation' %}📘 Documentation
+              {% elif res.type == 'Video Course' %}🎥 Video Course
+              {% elif res.type == 'Practice' %}💻 Practice
+              {% else %}📚 Course{% endif %}
+            </span>
+            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">{{ res.provider }}</span>
+            {% if res.is_free %}
+              <span class="badge badge-success" style="font-size: 0.7rem;">Free</span>
+            {% else %}
+              <span class="badge badge-warning" style="font-size: 0.7rem;">Paid</span>
+            {% endif %}
+            {% if res.skill %}
+              <a href="{{ url_for('skills.detail', slug=res.skill.slug) }}" class="badge badge-primary" style="text-transform: none; text-decoration: none;">
+                {{ res.skill.name }}
+              </a>
+            {% endif %}
+          </div>
+
+          <h3 style="font-size: 1.15rem; margin-bottom: 0.25rem;">{{ res.title }}</h3>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0;">{{ res.description }}</p>
+        </div>
+
+        <a href="{{ res.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
+          Open Resource <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

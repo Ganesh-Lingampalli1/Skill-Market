@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile – {{ user.username }} – SkillMarket{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 3rem; padding-bottom: 5rem;">
+
+  <!-- Profile Header Card -->
+  <div class="card" style="padding: 2.5rem; margin-bottom: 2.5rem; background: linear-gradient(180deg, var(--card-bg) 0%, var(--bg-tertiary) 100%);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+      <div style="display: flex; gap: 1.5rem; align-items: center;">
+        <div class="avatar-circle" style="width: 72px; height: 72px; font-size: 2rem;">
+          {{ user.username[:1].upper() }}
+        </div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+            <h1 style="font-size: 2rem; margin-bottom: 0;">{{ user.username }}</h1>
+            {% if user.is_verified %}
+              <span class="badge badge-success" title="Verified Account">
+                <i data-lucide="check-check" style="width: 12px; height: 12px;"></i> Verified
+              </span>
+            {% endif %}
+            {% if user.is_admin %}
+              <span class="badge badge-primary">Admin</span>
+            {% endif %}
+          </div>
+          <div style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 0.5rem;">{{ user.email }}</div>
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <span class="badge badge-neutral"><i data-lucide="compass" style="width: 12px; height: 12px;"></i> {{ user.career_interest or 'Web Development' }}</span>
+            <span class="badge badge-neutral"><i data-lucide="bar-chart" style="width: 12px; height: 12px;"></i> {{ user.experience_level or 'Beginner' }} Level</span>
+            <span class="badge badge-neutral"><i data-lucide="palette" style="width: 12px; height: 12px;"></i> Theme: {{ user.theme_preference.capitalize() }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem;">
+        <a href="{{ url_for('profile.settings') }}" class="btn btn-primary btn-sm">
+          <i data-lucide="settings" style="width: 16px; height: 16px;"></i> Edit Settings
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: start;">
+    
+    <!-- Active Roadmaps & Progress Summary -->
+    <div class="card">
+      <h3 style="font-size: 1.25rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+        <i data-lucide="map" style="color: var(--primary);"></i>
+        Roadmap Progress
+      </h3>
+
+      {% if roadmaps_summary %}
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          {% for item in roadmaps_summary %}
+            <div style="background: var(--bg-tertiary); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <div style="font-weight: 700; font-size: 1rem; color: var(--text-primary);">{{ item.career_path.name }}</div>
+                <div style="font-weight: 800; color: var(--primary); font-size: 1rem;">{{ item.percentage }}%</div>
+              </div>
+              <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                {{ item.done }} of {{ item.total }} milestones accomplished
+              </div>
+              <div class="progress-track" style="height: 8px; margin-bottom: 1rem;">
+                <div class="progress-bar-fill" style="width: {{ item.percentage }}%;"></div>
+              </div>
+              <a href="{{ url_for('roadmap.detail', slug=item.career_path.slug) }}" class="btn btn-outline btn-sm" style="width: 100%;">
+                Continue Roadmap <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+              </a>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state" style="padding: 2.5rem 1.5rem; margin: 0;">
+          <div class="empty-state-icon" style="width: 48px; height: 48px; font-size: 1.25rem;"><i data-lucide="map-pin"></i></div>
+          <h4 style="font-size: 1.1rem; margin-bottom: 0.25rem;">Start your roadmap and track your learning journey.</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">Select from our curated industry paths.</p>
+          <a href="{{ url_for('roadmap.list_roadmaps') }}" class="btn btn-primary btn-sm">Explore Roadmaps</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Bookmarked Skills Summary -->
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <h3 style="font-size: 1.25rem; margin-bottom: 0; display: flex; align-items: center; gap: 0.5rem;">
+          <i data-lucide="bookmark" style="color: var(--accent);"></i>
+          Bookmarked Skills ({{ bookmarked_skills|length }})
+        </h3>
+        <a href="{{ url_for('bookmarks.index') }}" style="font-size: 0.85rem; font-weight: 600;">View All →</a>
+      </div>
+
+      {% if bookmarked_skills %}
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          {% for skill in bookmarked_skills[:5] %}
+            <a href="{{ url_for('skills.detail', slug=skill.slug) }}" class="resource-item-link" style="padding: 0.75rem 1rem;">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div class="skill-icon" style="width: 36px; height: 36px; font-size: 1rem;"><i data-lucide="{{ skill.icon }}"></i></div>
+                <div>
+                  <div style="font-weight: 600; font-size: 0.95rem;">{{ skill.name }}</div>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">{{ skill.salary_formatted }} · {{ skill.difficulty }}</div>
+                </div>
+              </div>
+              <span class="badge badge-primary">{{ skill.demand_score }}/100</span>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state" style="padding: 2.5rem 1.5rem; margin: 0;">
+          <div class="empty-state-icon" style="width: 48px; height: 48px; font-size: 1.25rem;"><i data-lucide="bookmark"></i></div>
+          <h4 style="font-size: 1.1rem; margin-bottom: 0.25rem;">No saved skills yet.</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">Bookmark skills while exploring to quickly review them later.</p>
+          <a href="{{ url_for('skills.explore') }}" class="btn btn-outline btn-sm">Explore Skills</a>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
